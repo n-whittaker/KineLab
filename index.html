@@ -1,2229 +1,676 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Kinematics — iPad Video Analysis</title>
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Phosphor Icons -->
-  <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>KineLab 2D</title>
   <style>
-    /* Native iPadOS System Typography & Touch Lock */
+    :root {
+      --bg-dark: #000000;
+      --card-bg: rgba(28, 28, 30, 0.85);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --accent-blue: #0A84FF;
+      --accent-green: #30D158;
+      --accent-red: #FF453A;
+      --text-main: #FFFFFF;
+      --text-muted: #8E8E93;
+    }
+
     * {
-      -webkit-tap-highlight-color: transparent;
-      -webkit-touch-callout: none;
-      user-select: none;
-      -webkit-user-select: none;
       box-sizing: border-box;
-    }
-
-    input[type="text"] {
-      user-select: text;
-      -webkit-user-select: text;
-    }
-
-    html, body {
       margin: 0;
       padding: 0;
-      width: 100%;
-      height: 100%;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       overflow: hidden;
-      background-color: #000000;
-      color: #F5F5F7;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", sans-serif;
-      -webkit-font-smoothing: antialiased;
-      touch-action: none;
-      overscroll-behavior: none;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* Native iPadOS Frosted Glass Material */
-    .ios-glass {
-      background: rgba(28, 28, 30, 0.82);
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+    /* Top Toolbar */
+    header {
+      height: 52px;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 30;
+      gap: 8px;
     }
 
-    .ios-glass-pill {
-      background: rgba(38, 38, 40, 0.88);
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
-      border: 1px solid rgba(255, 255, 255, 0.14);
+    .brand-title {
+      font-weight: 600;
+      font-size: 16px;
+      letter-spacing: -0.2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    /* Strict Touch-Action Lock on Canvas Workspace */
-    #workspaceContainer,
-    #stageWrapper,
-    #annotationCanvas,
-    #simCanvas {
-      touch-action: none;
+    .tool-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
     }
 
-    /* Tool Button Active State (iOS Selection Style) */
-    .tool-btn {
-      min-width: 44px;
-      min-height: 44px;
-      color: rgba(235, 235, 245, 0.75);
-      transition: all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-    .tool-btn:hover {
-      color: #FFFFFF;
+    .btn {
       background: rgba(255, 255, 255, 0.08);
-    }
-    .tool-btn.active {
-      background: #0A84FF;
-      color: #FFFFFF;
-      box-shadow: 0 2px 10px rgba(10, 132, 255, 0.4);
-    }
-
-    /* iPadOS Scrubber Slider */
-    input[type="range"].ios-scrubber {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 100%;
-      height: 36px;
-      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
       cursor: pointer;
-      touch-action: none;
+      min-height: 36px;
+      touch-action: manipulation;
     }
 
-    input[type="range"].ios-scrubber::-webkit-slider-runnable-track {
-      height: 6px;
-      border-radius: 999px;
+    .btn:active {
       background: rgba(255, 255, 255, 0.2);
     }
 
-    input[type="range"].ios-scrubber::-webkit-slider-thumb {
+    .btn.active {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: #FFFFFF;
+    }
+
+    .btn-danger {
+      color: var(--accent-red);
+      background: rgba(255, 69, 58, 0.12);
+      border-color: rgba(255, 69, 58, 0.3);
+    }
+
+    /* Main Workspace */
+    #workspace {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #stageContainer {
+      flex: 1;
+      position: relative;
+      background: #000000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #videoPlayer {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    #annotCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+      z-index: 10;
+    }
+
+    /* Loupe */
+    #magnifierLoupe {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+      pointer-events: none;
+      display: none;
+      z-index: 25;
+      background: #000;
+    }
+
+    #loupeCanvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Sidebar */
+    #inspectorSidebar {
+      width: 280px;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-left: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 20;
+      transition: margin-right 0.2s ease;
+    }
+
+    #inspectorSidebar.collapsed {
+      margin-right: -280px;
+    }
+
+    .sidebar-header {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .sidebar-body {
+      padding: 14px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent-green);
+      margin: 4px 0;
+    }
+
+    .chip-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+
+    .chip {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 12px;
+      color: var(--text-main);
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .chip:active {
+      background: var(--accent-blue);
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      color: #FFF;
+      font-size: 13px;
+      outline: none;
+    }
+
+    /* Bottom Scrubber Toolbar */
+    footer {
+      height: 64px;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      z-index: 30;
+    }
+
+    .timeline-slider {
+      flex: 1;
       -webkit-appearance: none;
-      appearance: none;
-      width: 22px;
-      height: 22px;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.2);
+      outline: none;
+    }
+
+    .timeline-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       background: #FFFFFF;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.1);
-      margin-top: -8px;
-      transition: transform 0.12s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+      cursor: pointer;
     }
 
-    input[type="range"].ios-scrubber:active::-webkit-slider-thumb {
-      transform: scale(1.22);
-      background: #FFD60A;
-    }
-
-    /* Hide scrollbars on compact horizontal toolbars and sidebar lists */
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
+    .time-badge {
+      font-variant-numeric: tabular-nums;
+      font-size: 13px;
+      color: var(--text-muted);
+      min-width: 80px;
     }
   </style>
 </head>
-<body class="flex flex-col h-screen w-screen overflow-hidden bg-black select-none">
+<body>
 
-  <!-- ================= TOP NAVIGATION & MARKUP BAR ================= -->
-  <header class="px-3 pt-2.5 pb-2 flex items-center justify-between gap-2 shrink-0 z-30">
-    
-    <!-- Left: Open Video & Demo Clip -->
-    <div class="flex items-center gap-2 shrink-0">
-      <input type="file" id="videoFileInput" accept="video/mp4,video/quicktime,video/webm,video/*" class="hidden" />
-      
-      <button id="loadVideoBtn" class="ios-glass min-h-[44px] px-4 rounded-full text-sm font-medium text-white hover:bg-white/10 active:scale-95 transition flex items-center gap-2 shadow-lg">
-        <i class="ph-fill ph-video-camera text-[#0A84FF] text-lg"></i>
-        <span>Open Video</span>
-      </button>
-
-      <button id="demoClipBtn" class="ios-glass min-h-[44px] px-3.5 rounded-full text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition flex items-center gap-1.5" title="Switch to built-in Demo Clip">
-        <i class="ph-bold ph-person-simple-walk text-base text-[#FFD60A]"></i>
-        <span class="hidden sm:inline">Demo Clip</span>
-      </button>
+  <!-- Top Navigation & Tool Selection -->
+  <header>
+    <div class="brand-title">
+      <span>📐 KineLab</span>
     </div>
 
-    <!-- Center: iPadOS Floating Markup Toolbar -->
-    <div class="ios-glass px-2 py-1 rounded-full flex items-center gap-1 overflow-x-auto no-scrollbar shadow-2xl max-w-full">
-      <!-- Move / Edit Tool -->
-      <button data-tool="select" class="tool-btn rounded-full px-3 flex items-center gap-1.5 text-xs font-medium shrink-0" title="Move / Edit Points">
-        <i class="ph-bold ph-hand-pointing text-lg"></i>
-        <span class="hidden xl:inline">Move</span>
-      </button>
-
-      <!-- 3-Point Joint Angle Tool (1st: Start, 2nd: Joint Vertex, 3rd: End) -->
-      <button data-tool="angle" class="tool-btn active rounded-full px-3 flex items-center gap-1.5 text-xs font-medium shrink-0" title="3-Point Joint Angle (2nd tap is Vertex)">
-        <i class="ph-bold ph-angle text-lg"></i>
-        <span class="hidden md:inline">Angle</span>
-      </button>
-
-      <!-- Straight Line Tool -->
-      <button data-tool="line" class="tool-btn rounded-full px-3 flex items-center gap-1.5 text-xs font-medium shrink-0" title="Straight Segment Line">
-        <i class="ph-bold ph-line-segment text-lg"></i>
-        <span class="hidden lg:inline">Line</span>
-      </button>
-
-      <!-- Plumb Line Tool (Vertical / Horizontal Snap) -->
-      <button data-tool="plumb" class="tool-btn rounded-full px-3 flex items-center gap-1.5 text-xs font-medium shrink-0" title="Vertical / Horizontal Plumb Line">
-        <i class="ph-bold ph-arrows-out-line-vertical text-lg"></i>
-        <span class="hidden lg:inline">Plumb</span>
-      </button>
-
-      <!-- Directional Arrow Tool -->
-      <button data-tool="arrow" class="tool-btn rounded-full px-3 flex items-center gap-1.5 text-xs font-medium shrink-0" title="Directional Vector Arrow">
-        <i class="ph-bold ph-arrow-up-right text-lg"></i>
-        <span class="hidden xl:inline">Arrow</span>
-      </button>
-
-      <!-- Circle Tool -->
-      <button data-tool="circle" class="tool-btn rounded-full px-2.5 flex items-center justify-center text-xs font-medium shrink-0" title="Circle Marker">
-        <i class="ph-bold ph-circle text-lg"></i>
-      </button>
-
-      <!-- Freehand Pen Tool -->
-      <button data-tool="pen" class="tool-btn rounded-full px-2.5 flex items-center justify-center text-xs font-medium shrink-0" title="Freehand Trace Pen">
-        <i class="ph-bold ph-scribble-loop text-lg"></i>
-      </button>
-
-      <div class="w-px h-6 bg-white/15 mx-1 shrink-0"></div>
-
-      <!-- Dashed / Solid Toggle -->
-      <button id="lineStyleBtn" class="min-w-[44px] min-h-[44px] px-2.5 rounded-full text-xs font-medium text-zinc-200 hover:bg-white/10 active:scale-95 transition flex items-center justify-center gap-1 shrink-0" title="Toggle Solid / Dashed Line">
-        <i id="lineStyleIcon" class="ph-bold ph-minus text-lg text-white"></i>
-        <span id="lineStyleLabel" class="hidden xl:inline text-[11px] text-zinc-300">Solid</span>
-      </button>
-
-      <div class="w-px h-6 bg-white/15 mx-1 shrink-0"></div>
-
-      <!-- 5 Official iOS Color Swatches -->
-      <div id="colorPalette" class="flex items-center gap-1.5 px-1.5 shrink-0">
-        <button data-color="#FFD60A" class="color-swatch w-7 h-7 rounded-full bg-[#FFD60A] ring-2 ring-white ring-offset-2 ring-offset-zinc-900 transition active:scale-90" title="Yellow"></button>
-        <button data-color="#0A84FF" class="color-swatch w-7 h-7 rounded-full bg-[#0A84FF] opacity-75 hover:opacity-100 transition active:scale-90" title="Blue"></button>
-        <button data-color="#30D158" class="color-swatch w-7 h-7 rounded-full bg-[#30D158] opacity-75 hover:opacity-100 transition active:scale-90" title="Green"></button>
-        <button data-color="#FF453A" class="color-swatch w-7 h-7 rounded-full bg-[#FF453A] opacity-75 hover:opacity-100 transition active:scale-90" title="Red"></button>
-        <button data-color="#FFFFFF" class="color-swatch w-7 h-7 rounded-full bg-[#FFFFFF] opacity-75 hover:opacity-100 transition active:scale-90" title="White"></button>
-      </div>
+    <div class="tool-group">
+      <button id="toolAngle" class="btn active" onclick="setTool('angle')">Angle (3pt)</button>
+      <button id="toolPlumb" class="btn" onclick="setTool('plumb')">Plumb Line</button>
+      <button id="toolLine" class="btn" onclick="setTool('line')">Line</button>
+      <button id="toolArrow" class="btn" onclick="setTool('arrow')">Vector</button>
+      <button id="toolStyle" class="btn" onclick="toggleLineStyle()">Solid</button>
+      <button id="btnClear" class="btn btn-danger" onclick="clearCurrentMarkup()">Clear</button>
     </div>
 
-    <!-- Right: Undo, Clear, Save Photo & Inspector Panel Toggle -->
-    <div class="flex items-center gap-1.5 shrink-0">
-      <button id="undoBtn" class="ios-glass min-w-[44px] min-h-[44px] px-3 rounded-full text-zinc-200 hover:text-white hover:bg-white/10 active:scale-95 transition flex items-center justify-center disabled:opacity-35 disabled:pointer-events-none" title="Undo">
-        <i class="ph-bold ph-arrow-u-up-left text-lg"></i>
-      </button>
-
-      <button id="clearAllBtn" class="ios-glass min-h-[44px] px-3.5 rounded-full text-xs font-medium text-[#FF453A] hover:bg-[#FF453A]/15 active:scale-95 transition flex items-center gap-1" title="Clear All Markup">
-        <i class="ph-bold ph-trash text-base"></i>
-        <span class="hidden xl:inline">Clear</span>
-      </button>
-
-      <button id="exportPngBtn" class="ios-glass min-h-[44px] px-3.5 sm:px-4 rounded-full text-xs sm:text-sm font-medium text-[#0A84FF] hover:bg-[#0A84FF]/15 active:scale-95 transition flex items-center gap-1.5" title="Save Annotated Frame as PNG">
-        <i class="ph-bold ph-export text-lg"></i>
-        <span class="hidden sm:inline">Save</span>
-      </button>
-
-      <!-- iPadOS Inspector Sidebar Toggle Button -->
-      <button id="sidebarToggleBtn" class="ios-glass min-w-[44px] min-h-[44px] px-3 rounded-full text-white bg-white/10 hover:bg-white/20 active:scale-95 transition flex items-center justify-center shadow-lg" title="Toggle Inspector Sidebar">
-        <i id="sidebarToggleIcon" class="ph-bold ph-sidebar-simple text-xl text-[#0A84FF]"></i>
-      </button>
+    <div class="tool-group">
+      <input type="file" id="videoUpload" accept="video/mp4,video/quicktime" style="display:none" onchange="loadVideoFile(event)">
+      <button class="btn" onclick="document.getElementById('videoUpload').click()">Open Video</button>
+      <button id="sidebarToggle" class="btn" onclick="toggleSidebar()">Inspector</button>
     </div>
   </header>
 
-  <!-- ================= MAIN WORKSPACE & SIDEBAR CONTAINER ================= -->
-  <div class="flex-1 flex flex-row overflow-hidden relative">
+  <!-- Canvas & Video Viewport -->
+  <main id="workspace">
+    <div id="stageContainer">
+      <video id="videoPlayer" playsinline muted preload="auto"></video>
+      <canvas id="annotCanvas"></canvas>
+      <div id="magnifierLoupe"><canvas id="loupeCanvas"></canvas></div>
+    </div>
 
-    <!-- Canvas Stage Container (Dynamically resizes when sidebar opens/closes) -->
-    <main id="workspaceContainer" class="flex-1 relative flex items-center justify-center overflow-hidden px-3 py-1 min-w-0 transition-all duration-200">
-
-      <!-- Subtle Floating Step Hint Pill (Only visible when placing a 3-point angle or tool prompt) -->
-      <div id="toolHintPill" class="ios-glass-pill absolute top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none px-4 py-1.5 rounded-full flex items-center gap-2 shadow-lg transition-opacity duration-200">
-        <span class="w-2 h-2 rounded-full bg-[#FFD60A]"></span>
-        <span id="hudPromptText" class="text-xs font-medium text-zinc-100 tracking-tight">
-          Tap 1st limb point
-        </span>
+    <!-- Right-Side Anatomical Inspector -->
+    <aside id="inspectorSidebar">
+      <div class="sidebar-header">
+        <span>Measurement Details</span>
+        <button class="btn" style="padding: 2px 8px; min-height: 24px;" onclick="toggleSidebar()">✕</button>
       </div>
-
-      <!-- Video & Locked Canvas Wrapper (Dynamically sized to exact video aspect ratio) -->
-      <div id="stageWrapper" class="relative rounded-2xl overflow-hidden bg-zinc-950 shadow-2xl border border-white/10 flex items-center justify-center transition-all duration-150">
-        <!-- Local Video Element -->
-        <video 
-          id="kinematicVideo" 
-          class="w-full h-full object-contain hidden pointer-events-none" 
-          playsinline 
-          webkit-playsinline 
-          muted 
-          preload="auto"
-        ></video>
-
-        <!-- Minimalist Demo Clip Canvas (Active before student loads a video) -->
-        <canvas id="simCanvas" class="w-full h-full block pointer-events-none"></canvas>
-
-        <!-- Locked Annotation Overlay Canvas -->
-        <canvas id="annotationCanvas" class="absolute inset-0 w-full h-full block cursor-crosshair"></canvas>
-      </div>
-
-      <!-- Drag & Drop Video Overlay -->
-      <div id="dropZoneOverlay" class="hidden absolute inset-4 rounded-3xl ios-glass border-2 border-dashed border-[#0A84FF] z-40 flex flex-col items-center justify-center pointer-events-none">
-        <i class="ph-fill ph-video-camera text-5xl text-[#0A84FF] mb-2"></i>
-        <p class="text-lg font-semibold text-white">Drop Video to Open</p>
-      </div>
-    </main>
-
-    <!-- ================= DEDICATED iPadOS INSPECTOR SIDEBAR ================= -->
-    <aside id="inspectorSidebar" class="w-80 border-l border-white/10 ios-glass flex flex-col shrink-0 z-20 overflow-hidden transition-all duration-200">
-      
-      <!-- Sidebar Header -->
-      <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between shrink-0">
-        <div class="flex items-center gap-2">
-          <i class="ph-bold ph-sliders-horizontal text-[#0A84FF] text-base"></i>
-          <h2 class="text-sm font-semibold tracking-tight text-white">Inspector</h2>
+      <div class="sidebar-body">
+        <div class="stat-card">
+          <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Angle Measurement</div>
+          <div id="statAngle" class="stat-value">--°</div>
+          <div id="statType" style="font-size: 11px; color: var(--text-muted);">Select or draw an angle</div>
         </div>
-        <div class="flex items-center gap-1.5">
-          <span id="annotationCountBadge" class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-white/10 text-zinc-300">2 Items</span>
-          <button id="closeSidebarBtn" class="w-7 h-7 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 flex items-center justify-center transition" title="Hide Sidebar">
-            <i class="ph-bold ph-x text-sm"></i>
-          </button>
-        </div>
-      </div>
 
-      <!-- Scrollable Sidebar Body -->
-      <div class="flex-1 overflow-y-auto no-scrollbar p-3 space-y-4">
-        
-        <!-- SECTION 1: SELECTED ANNOTATION DETAILS (When an item is selected) -->
-        <div id="selectionInspectorCard" class="space-y-3.5">
-          
-          <!-- Live Angle Hero Card (Only shown if selected item is an Angle) -->
-          <div id="angleHeroCard" class="p-3.5 rounded-2xl bg-white/[0.06] border border-white/10 flex items-center justify-between">
-            <div>
-              <span class="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 block mb-0.5">Joint Angle</span>
-              <div class="flex items-baseline gap-2">
-                <span id="sidebarAngleDegrees" class="font-bold text-3xl tracking-tight text-white font-mono">114.2°</span>
-                <span id="sidebarAngleTypeTag" class="text-[11px] font-medium text-[#FFD60A]">Interior</span>
-              </div>
-            </div>
-            <div id="selectedColorIndicator" class="w-7 h-7 rounded-full bg-[#FFD60A] ring-2 ring-white/30 shadow-md"></div>
-          </div>
-
-          <!-- Non-Angle Details Card (For Line, Plumb, Arrow, Circle) -->
-          <div id="genericHeroCard" class="hidden p-3.5 rounded-2xl bg-white/[0.06] border border-white/10 flex items-center justify-between">
-            <div>
-              <span id="genericItemTypeTag" class="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 block mb-0.5">Straight Line</span>
-              <span id="genericItemSubtext" class="text-xs font-medium text-white">Segment Alignment</span>
-            </div>
-            <div id="genericColorIndicator" class="w-6 h-6 rounded-full bg-[#FFD60A] ring-2 ring-white/30"></div>
-          </div>
-
-          <!-- Custom Label Input Field -->
-          <div class="space-y-1.5">
-            <label class="text-[11px] font-medium text-zinc-300 flex items-center justify-between">
-              <span>Label</span>
-              <span class="text-[10px] text-zinc-500">Shows on canvas</span>
-            </label>
-            <div class="relative flex items-center">
-              <i class="ph-bold ph-tag text-zinc-400 text-sm absolute left-3 pointer-events-none"></i>
-              <input 
-                type="text" 
-                id="annotationNameInput" 
-                placeholder="e.g. Knee, Hip, Trunk" 
-                maxlength="24"
-                class="h-10 w-full pl-8 pr-8 rounded-xl bg-black/60 border border-white/15 text-xs font-medium text-white placeholder-zinc-500 focus:outline-none focus:border-[#0A84FF] transition"
-              />
-              <button id="clearNameBtn" class="absolute right-2 text-zinc-400 hover:text-white p-1" title="Clear Label">
-                <i class="ph-fill ph-x-circle text-sm"></i>
-              </button>
-            </div>
-          </div>
-
-          <!-- One-Tap Quick Anatomical Presets Grid -->
-          <div class="space-y-1.5">
-            <span class="text-[11px] font-medium text-zinc-300 block">Quick Presets</span>
-            <div id="presetChipsContainer" class="grid grid-cols-4 gap-1.5">
-              <button data-preset="Hip" class="preset-chip min-h-[34px] px-2 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-xs font-medium text-zinc-200 transition">Hip</button>
-              <button data-preset="Knee" class="preset-chip min-h-[34px] px-2 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-xs font-medium text-zinc-200 transition">Knee</button>
-              <button data-preset="Ankle" class="preset-chip min-h-[34px] px-2 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-xs font-medium text-zinc-200 transition">Ankle</button>
-              <button data-preset="Trunk" class="preset-chip min-h-[34px] px-2 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-xs font-medium text-zinc-200 transition">Trunk</button>
-              <button data-preset="Shoulder" class="preset-chip min-h-[34px] px-2 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-xs font-medium text-zinc-200 transition">Shoulder</button>
-              <button data-preset="Elbow" class="preset-chip min-h-[34px] px-2 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-xs font-medium text-zinc-200 transition">Elbow</button>
-              <button data-preset="Neck" class="preset-chip min-h-[34px] px-2 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-xs font-medium text-zinc-200 transition">Neck</button>
-              <button data-preset="Wrist" class="preset-chip min-h-[34px] px-2 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-xs font-medium text-zinc-200 transition">Wrist</button>
-            </div>
-          </div>
-
-          <!-- Angle Quick Actions (Flip Arc & Delete) -->
-          <div class="pt-1 flex items-center gap-2">
-            <button id="flipAngleBtn" class="flex-1 min-h-[40px] px-3 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-xs font-medium text-zinc-100 flex items-center justify-center gap-1.5 transition" title="Toggle Interior (<180°) vs Reflex (>180°)">
-              <i class="ph-bold ph-arrows-clockwise text-sm text-[#FFD60A]"></i>
-              <span>Flip 180°/360°</span>
-            </button>
-
-            <button id="deleteSelectedBtn" class="min-w-[40px] min-h-[40px] px-3 rounded-xl bg-[#FF453A]/20 hover:bg-[#FF453A]/30 active:scale-95 text-[#FF453A] flex items-center justify-center gap-1 text-xs font-medium transition" title="Delete this annotation">
-              <i class="ph-bold ph-trash text-base"></i>
-              <span>Delete</span>
-            </button>
+        <div>
+          <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Joint Preset</label>
+          <div class="chip-grid">
+            <button class="chip" onclick="applyPresetName('Hip')">Hip</button>
+            <button class="chip" onclick="applyPresetName('Knee')">Knee</button>
+            <button class="chip" onclick="applyPresetName('Ankle')">Ankle</button>
+            <button class="chip" onclick="applyPresetName('Trunk')">Trunk</button>
+            <button class="chip" onclick="applyPresetName('Shoulder')">Shoulder</button>
+            <button class="chip" onclick="applyPresetName('Elbow')">Elbow</button>
           </div>
         </div>
 
-        <!-- Empty State Prompt (Shown when no annotation is currently selected) -->
-        <div id="noSelectionNotice" class="hidden p-4 rounded-2xl bg-white/[0.04] border border-white/5 text-center space-y-1.5">
-          <i class="ph-light ph-hand-pointing text-2xl text-zinc-400"></i>
-          <p class="text-xs font-medium text-zinc-300">No Item Selected</p>
-          <p class="text-[11px] text-zinc-500 leading-snug">Tap any joint angle or line on the video, or select an item below to inspect and rename.</p>
+        <div>
+          <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Custom Name</label>
+          <input type="text" id="customLabelInput" placeholder="e.g. Left Knee Flexion" oninput="updateCurrentLabel(this.value)">
         </div>
 
-        <div class="w-full h-px bg-white/10 my-1"></div>
-
-        <!-- SECTION 2: LIST OF ALL ANNOTATIONS ON CURRENT FRAME -->
-        <div class="space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Measurements</span>
-            <button id="deselectAllBtn" class="text-[11px] text-[#0A84FF] hover:underline" title="Deselect active item">Deselect</button>
-          </div>
-
-          <div id="annotationsListContainer" class="space-y-1.5">
-            <!-- Dynamically populated rows -->
-          </div>
-        </div>
-
+        <button class="btn" onclick="flipActiveAngle()">Flip 180° / 360°</button>
       </div>
     </aside>
+  </main>
 
-  </div>
+  <!-- Bottom Timeline & Frame Controls -->
+  <footer>
+    <button id="playBtn" class="btn" onclick="togglePlay()">Play</button>
+    <button class="btn" onclick="stepFrame(-1)">-1F</button>
+    <button class="btn" onclick="stepFrame(1)">+1F</button>
 
-  <!-- ================= BOTTOM VIDEO PLAYBACK & FRAME SCRUBBER BAR ================= -->
-  <footer class="px-3 pb-3 pt-1.5 shrink-0 z-30">
-    <div class="ios-glass rounded-3xl px-4 py-2.5 flex flex-col sm:flex-row items-center gap-3 shadow-2xl max-w-6xl mx-auto">
-      
-      <!-- Left: Play/Pause & Single-Frame Step Buttons -->
-      <div class="flex items-center gap-1.5 shrink-0">
-        <!-- Step Backward 1 Frame -->
-        <button id="stepBackBtn" class="min-w-[44px] min-h-[44px] px-3 rounded-full hover:bg-white/10 active:scale-90 text-zinc-200 hover:text-white transition flex items-center gap-1 text-xs font-medium" title="Step Backward 1 Frame">
-          <i class="ph-fill ph-skip-back text-lg"></i>
-          <span class="hidden md:inline">-1 Frame</span>
-        </button>
+    <input type="range" id="timeline" class="timeline-slider" min="0" max="100" value="0" step="0.01" oninput="onScrub(this.value)">
+    <div id="timeDisplay" class="time-badge">00:00.00</div>
 
-        <!-- Play / Pause Toggle -->
-        <button id="playPauseBtn" class="w-11 h-11 rounded-full bg-white text-black hover:bg-zinc-200 active:scale-90 transition flex items-center justify-center shadow-md" title="Play / Pause">
-          <i id="playPauseIcon" class="ph-fill ph-play text-xl ml-0.5"></i>
-        </button>
-
-        <!-- Step Forward 1 Frame -->
-        <button id="stepForwardBtn" class="min-w-[44px] min-h-[44px] px-3 rounded-full hover:bg-white/10 active:scale-90 text-zinc-200 hover:text-white transition flex items-center gap-1 text-xs font-medium" title="Step Forward 1 Frame">
-          <span class="hidden md:inline">+1 Frame</span>
-          <i class="ph-fill ph-skip-forward text-lg"></i>
-        </button>
-      </div>
-
-      <!-- Center: Smooth Touch Scrubber & Timestamp -->
-      <div class="flex-1 w-full flex items-center gap-3">
-        <span id="timeReadout" class="font-mono text-xs text-zinc-300 w-14 text-right shrink-0">0:00.00</span>
-        <div class="flex-1 flex items-center">
-          <input 
-            type="range" 
-            id="timelineScrubber" 
-            class="ios-scrubber" 
-            min="0" 
-            max="1000" 
-            step="1" 
-            value="0" 
-          />
-        </div>
-        <span id="durationReadout" class="font-mono text-xs text-zinc-500 w-14 shrink-0">0:02.00</span>
-      </div>
-
-      <!-- Right: Segmented Speed Selector Pill (1x, 0.5x, 0.25x, 0.1x) -->
-      <div class="flex items-center bg-black/45 p-1 rounded-full border border-white/10 shrink-0">
-        <button data-speed="1" class="speed-btn min-h-[34px] px-2.5 rounded-full text-xs font-medium text-zinc-400 hover:text-white transition">1x</button>
-        <button data-speed="0.5" class="speed-btn min-h-[34px] px-2.5 rounded-full text-xs font-medium text-zinc-400 hover:text-white transition">0.5x</button>
-        <button data-speed="0.25" class="speed-btn min-h-[34px] px-2.5 rounded-full text-xs font-medium bg-white/20 text-white shadow-sm transition">0.25x</button>
-        <button data-speed="0.1" class="speed-btn min-h-[34px] px-2.5 rounded-full text-xs font-medium text-zinc-400 hover:text-white transition">0.1x</button>
-      </div>
-
-    </div>
+    <button class="btn" onclick="setSpeed(0.25)">0.25x</button>
+    <button class="btn" onclick="setSpeed(0.5)">0.5x</button>
+    <button class="btn" onclick="setSpeed(1.0)">1.0x</button>
   </footer>
 
-  <!-- Subtle iPadOS Toast Notification -->
-  <div id="toastNotification" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 -translate-y-2 transition-all duration-200 ios-glass-pill text-white px-4 py-2 rounded-full shadow-2xl flex items-center gap-2 text-xs font-medium">
-    <i class="ph-fill ph-check-circle text-[#30D158] text-base"></i>
-    <span id="toastMessage">Saved</span>
-  </div>
-
-  <!-- ================= APPLICATION JAVASCRIPT ================= -->
   <script>
-    (function () {
-      'use strict';
+    const video = document.getElementById('videoPlayer');
+    const canvas = document.getElementById('annotCanvas');
+    const ctx = canvas.getContext('2d');
+    const loupe = document.getElementById('magnifierLoupe');
+    const loupeCanvas = document.getElementById('loupeCanvas');
+    const loupeCtx = loupeCanvas.getContext('2d');
+    const sidebar = document.getElementById('inspectorSidebar');
 
-      // =========================================================================
-      // 1. STATE MANAGEMENT
-      // =========================================================================
-      const state = {
-        sourceMode: 'demo', // 'demo' | 'video'
-        videoObjectUrl: null,
-        isPlaying: false,
-        playbackRate: 0.25,
-        stepCadence: 1 / 60, // Smooth single-frame step interval
-        currentTime: 0.52,
-        duration: 2.0,
+    let currentTool = 'angle';
+    let lineDashed = false;
+    let annotations = [];
+    let tempPoints = [];
+    let selectedAnnotation = null;
+    let isDragging = false;
+    let activePoint = null;
 
-        // Active Tool: 'select' | 'angle' | 'line' | 'plumb' | 'arrow' | 'circle' | 'pen'
-        activeTool: 'angle',
-        activeColor: '#FFD60A',
-        strokeWidth: 3,
-        lineStyle: 'solid', // 'solid' | 'dashed'
+    function resizeCanvas() {
+      const rect = document.getElementById('stageContainer').getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      loupeCanvas.width = 110;
+      loupeCanvas.height = 110;
+      render();
+    }
+    window.addEventListener('resize', resizeCanvas);
+    new ResizeObserver(resizeCanvas).observe(document.getElementById('stageContainer'));
 
-        // Annotations list (normalized 0..1 coordinates)
-        annotations: [],
-        undoStack: [],
-        selectedAnnotationId: null,
+    function setTool(tool) {
+      currentTool = tool;
+      tempPoints = [];
+      document.querySelectorAll('.tool-group .btn').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('tool' + tool.charAt(0).toUpperCase() + tool.slice(1));
+      if (btn) btn.classList.add('active');
+      render();
+    }
 
-        // Sidebar state
-        isSidebarOpen: true,
+    function toggleLineStyle() {
+      lineDashed = !lineDashed;
+      document.getElementById('toolStyle').innerText = lineDashed ? 'Dashed' : 'Solid';
+    }
 
-        // Interactive creation / dragging state
-        pendingAngle: null, // { id, p1, vertex, p2 }
-        activeDrag: null,   // { type, annotation, handleKey }
-        pointerPos: { x: 0.5, y: 0.5, active: false }
-      };
+    function toggleSidebar() {
+      sidebar.classList.toggle('collapsed');
+      setTimeout(resizeCanvas, 220);
+    }
 
-      const TOOL_HINTS = {
-        select: 'Tap any shape to select & edit in Inspector, or drag points directly',
-        angle: 'Tap 1st limb point, then Joint Center (vertex), then 3rd point',
-        line: 'Drag to draw a straight reference line',
-        plumb: 'Drag vertically or horizontally to snap a plumb line',
-        arrow: 'Drag to draw a directional vector arrow',
-        circle: 'Drag outward to place a circular marker',
-        pen: 'Draw a freehand motion path'
-      };
-
-      // =========================================================================
-      // 2. DOM ELEMENTS
-      // =========================================================================
-      const workspaceContainer = document.getElementById('workspaceContainer');
-      const stageWrapper = document.getElementById('stageWrapper');
-      const videoEl = document.getElementById('kinematicVideo');
-      const simCanvas = document.getElementById('simCanvas');
-      const simCtx = simCanvas.getContext('2d');
-      const annotationCanvas = document.getElementById('annotationCanvas');
-      const annCtx = annotationCanvas.getContext('2d');
-
-      const loadVideoBtn = document.getElementById('loadVideoBtn');
-      const videoFileInput = document.getElementById('videoFileInput');
-      const demoClipBtn = document.getElementById('demoClipBtn');
-
-      const toolBtns = document.querySelectorAll('.tool-btn');
-      const lineStyleBtn = document.getElementById('lineStyleBtn');
-      const lineStyleIcon = document.getElementById('lineStyleIcon');
-      const lineStyleLabel = document.getElementById('lineStyleLabel');
-      const colorSwatches = document.querySelectorAll('.color-swatch');
-
-      const undoBtn = document.getElementById('undoBtn');
-      const clearAllBtn = document.getElementById('clearAllBtn');
-      const exportPngBtn = document.getElementById('exportPngBtn');
-      const hudPromptText = document.getElementById('hudPromptText');
-
-      // Inspector Sidebar Elements
-      const inspectorSidebar = document.getElementById('inspectorSidebar');
-      const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
-      const sidebarToggleIcon = document.getElementById('sidebarToggleIcon');
-      const closeSidebarBtn = document.getElementById('closeSidebarBtn');
-      const annotationCountBadge = document.getElementById('annotationCountBadge');
-
-      const selectionInspectorCard = document.getElementById('selectionInspectorCard');
-      const noSelectionNotice = document.getElementById('noSelectionNotice');
-      const angleHeroCard = document.getElementById('angleHeroCard');
-      const genericHeroCard = document.getElementById('genericHeroCard');
-      const sidebarAngleDegrees = document.getElementById('sidebarAngleDegrees');
-      const sidebarAngleTypeTag = document.getElementById('sidebarAngleTypeTag');
-      const selectedColorIndicator = document.getElementById('selectedColorIndicator');
-      const genericItemTypeTag = document.getElementById('genericItemTypeTag');
-      const genericItemSubtext = document.getElementById('genericItemSubtext');
-      const genericColorIndicator = document.getElementById('genericColorIndicator');
-
-      const annotationNameInput = document.getElementById('annotationNameInput');
-      const clearNameBtn = document.getElementById('clearNameBtn');
-      const presetChips = document.querySelectorAll('.preset-chip');
-      const flipAngleBtn = document.getElementById('flipAngleBtn');
-      const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
-      const deselectAllBtn = document.getElementById('deselectAllBtn');
-      const annotationsListContainer = document.getElementById('annotationsListContainer');
-
-      // Bottom Scrubber & Transport
-      const timelineScrubber = document.getElementById('timelineScrubber');
-      const timeReadout = document.getElementById('timeReadout');
-      const durationReadout = document.getElementById('durationReadout');
-      const playPauseBtn = document.getElementById('playPauseBtn');
-      const playPauseIcon = document.getElementById('playPauseIcon');
-      const stepBackBtn = document.getElementById('stepBackBtn');
-      const stepForwardBtn = document.getElementById('stepForwardBtn');
-      const speedBtns = document.querySelectorAll('.speed-btn');
-      const dropZoneOverlay = document.getElementById('dropZoneOverlay');
-
-      // =========================================================================
-      // 3. UTILITIES & GEOMETRY
-      // =========================================================================
-      function uid() {
-        return 'ann_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now().toString(36);
-      }
-
-      function clamp(val, min, max) {
-        return Math.max(min, Math.min(max, val));
-      }
-
-      function showToast(message) {
-        const toast = document.getElementById('toastNotification');
-        const msgEl = document.getElementById('toastMessage');
-        msgEl.textContent = message;
-        toast.classList.remove('opacity-0', '-translate-y-2');
-        toast.classList.add('opacity-100', 'translate-y-0');
-        clearTimeout(showToast._timer);
-        showToast._timer = setTimeout(() => {
-          toast.classList.add('opacity-0', '-translate-y-2');
-          toast.classList.remove('opacity-100', 'translate-y-0');
-        }, 2000);
-      }
-
-      function formatTime(seconds) {
-        if (!isFinite(seconds) || seconds < 0) seconds = 0;
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        const hundredths = Math.floor((seconds % 1) * 100);
-        return `${mins}:${String(secs).padStart(2, '0')}.${String(hundredths).padStart(2, '0')}`;
-      }
-
-      function saveUndoSnapshot() {
-        state.undoStack.push(JSON.stringify(state.annotations));
-        if (state.undoStack.length > 40) state.undoStack.shift();
-        updateInspectorSidebar();
-      }
-
-      /**
-       * Computes 3-point angle anchored at `vertex` (Point 2)
-       * between `p1` (Point 1) and `p2` (Point 3) in screen space.
-       */
-      function calculateJointAngleGeometry(vertex, p1, p2, width, height, useReflex = false) {
-        const vx = vertex.x * width;
-        const vy = vertex.y * height;
-        const x1 = p1.x * width;
-        const y1 = p1.y * height;
-        const x2 = p2.x * width;
-        const y2 = p2.y * height;
-
-        const a1 = Math.atan2(y1 - vy, x1 - vx);
-        const a2 = Math.atan2(y2 - vy, x2 - vx);
-
-        let diff = a2 - a1;
-        while (diff <= -Math.PI) diff += 2 * Math.PI;
-        while (diff > Math.PI) diff -= 2 * Math.PI;
-
-        let startAngle = a1;
-        let endAngle = a1 + diff;
-        let anticlockwise = diff < 0;
-        let degrees = Math.abs(diff) * (180 / Math.PI);
-
-        if (useReflex) {
-          degrees = 360 - degrees;
-          anticlockwise = !anticlockwise;
-        }
-
-        let bisector = a1 + diff / 2;
-        if (useReflex) {
-          bisector += Math.PI;
-        }
-
-        return {
-          degrees,
-          startAngle,
-          endAngle,
-          anticlockwise,
-          bisector
+    function loadVideoFile(e) {
+      const file = e.target.files[0];
+      if (file) {
+        video.src = URL.createObjectURL(file);
+        video.load();
+        video.onloadedmetadata = () => {
+          resizeCanvas();
+          updateTimeline();
         };
       }
+    }
 
-      // =========================================================================
-      // 4. SIDEBAR INSPECTOR UI UPDATER
-      // =========================================================================
-      function updateInspectorSidebar() {
-        undoBtn.disabled = state.undoStack.length === 0 && !state.pendingAngle;
-        annotationCountBadge.textContent = `${state.annotations.length} ${state.annotations.length === 1 ? 'Item' : 'Items'}`;
+    function togglePlay() {
+      if (video.paused) {
+        video.play();
+        document.getElementById('playBtn').innerText = 'Pause';
+      } else {
+        video.pause();
+        document.getElementById('playBtn').innerText = 'Play';
+      }
+    }
 
-        const sel = state.annotations.find(a => a.id === state.selectedAnnotationId);
+    function stepFrame(frames) {
+      video.pause();
+      document.getElementById('playBtn').innerText = 'Play';
+      video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + (frames * 0.0333)));
+      updateTimeline();
+    }
 
-        if (sel && !state.pendingAngle) {
-          selectionInspectorCard.classList.remove('hidden');
-          noSelectionNotice.classList.add('hidden');
+    function setSpeed(rate) {
+      video.playbackRate = rate;
+    }
 
-          if (document.activeElement !== annotationNameInput) {
-            annotationNameInput.value = sel.label || '';
+    function onScrub(val) {
+      if (video.duration) {
+        video.currentTime = (val / 100) * video.duration;
+        updateTimeline();
+      }
+    }
+
+    video.addEventListener('timeupdate', () => {
+      if (!video.paused) updateTimeline();
+    });
+
+    function updateTimeline() {
+      if (!video.duration) return;
+      document.getElementById('timeline').value = (video.currentTime / video.duration) * 100;
+      const m = Math.floor(video.currentTime / 60);
+      const s = Math.floor(video.currentTime % 60);
+      const ms = Math.floor((video.currentTime % 1) * 100);
+      document.getElementById('timeDisplay').innerText = 
+        `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(ms).padStart(2,'0')}`;
+    }
+
+    /* Coordinate Calculation & Drawing */
+    function getCanvasCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+      const pt = getCanvasCoords(e);
+      loupe.style.display = 'block';
+      updateLoupe(pt);
+
+      if (currentTool === 'angle') {
+        tempPoints.push(pt);
+        if (tempPoints.length === 3) {
+          const newAngle = {
+            type: 'angle',
+            p1: tempPoints[0],
+            vertex: tempPoints[1], // Point 2 is the joint vertex
+            p3: tempPoints[2],
+            label: 'Joint',
+            isReflex: false
+          };
+          annotations.push(newAngle);
+          selectedAnnotation = newAngle;
+          tempPoints = [];
+          updateSidebarInfo();
+        }
+      } else if (currentTool === 'line' || currentTool === 'arrow' || currentTool === 'plumb') {
+        tempPoints.push(pt);
+        if (tempPoints.length === 2) {
+          if (currentTool === 'plumb') {
+            const dx = Math.abs(tempPoints[1].x - tempPoints[0].x);
+            const dy = Math.abs(tempPoints[1].y - tempPoints[0].y);
+            if (dy > dx) tempPoints[1].x = tempPoints[0].x;
+            else tempPoints[1].y = tempPoints[0].y;
           }
-
-          if (sel.type === 'angle') {
-            angleHeroCard.classList.remove('hidden');
-            genericHeroCard.classList.add('hidden');
-            flipAngleBtn.classList.remove('hidden');
-
-            const stageRect = stageWrapper.getBoundingClientRect();
-            const geom = calculateJointAngleGeometry(
-              sel.vertex,
-              sel.p1,
-              sel.p2,
-              stageRect.width || 800,
-              stageRect.height || 450,
-              sel.reflex
-            );
-
-            sidebarAngleDegrees.textContent = geom.degrees.toFixed(1) + '°';
-            sidebarAngleTypeTag.textContent = sel.reflex ? 'Reflex' : 'Interior';
-            sidebarAngleTypeTag.className = sel.reflex
-              ? 'text-[11px] font-medium text-[#FF9F0A]'
-              : 'text-[11px] font-medium text-[#FFD60A]';
-            selectedColorIndicator.style.backgroundColor = sel.color || '#FFD60A';
-          } else {
-            angleHeroCard.classList.add('hidden');
-            genericHeroCard.classList.remove('hidden');
-            flipAngleBtn.classList.add('hidden');
-
-            const typeNames = {
-              line: 'Straight Line',
-              plumb: sel.orientation === 'horizontal' ? '0° Level Plumb' : '90° Vertical Plumb',
-              arrow: 'Directional Vector',
-              circle: 'Circular Marker',
-              pen: 'Freehand Path'
-            };
-            genericItemTypeTag.textContent = typeNames[sel.type] || sel.type.toUpperCase();
-            genericItemSubtext.textContent = sel.lineStyle === 'dashed' ? 'Dashed Style' : 'Solid Style';
-            genericColorIndicator.style.backgroundColor = sel.color || '#FFD60A';
-          }
-
-          // Active preset chip highlight
-          presetChips.forEach(chip => {
-            if (sel.label === chip.dataset.preset) {
-              chip.className = 'preset-chip min-h-[34px] px-2 rounded-lg bg-[#0A84FF] text-white text-xs font-medium transition';
-            } else {
-              chip.className = 'preset-chip min-h-[34px] px-2 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-xs font-medium text-zinc-200 transition';
-            }
+          annotations.push({
+            type: currentTool,
+            p1: tempPoints[0],
+            p2: tempPoints[1],
+            dashed: lineDashed
           });
-        } else {
-          selectionInspectorCard.classList.add('hidden');
-          noSelectionNotice.classList.remove('hidden');
+          tempPoints = [];
         }
-
-        renderMeasurementsList();
       }
+      render();
+    });
 
-      function renderMeasurementsList() {
-        annotationsListContainer.innerHTML = '';
-
-        if (state.annotations.length === 0) {
-          annotationsListContainer.innerHTML = `
-            <div class="py-4 text-center text-xs text-zinc-500">
-              No measurements on this frame yet
-            </div>
-          `;
-          return;
-        }
-
-        const stageRect = stageWrapper.getBoundingClientRect();
-        const stageW = stageRect.width || 800;
-        const stageH = stageRect.height || 450;
-
-        state.annotations.forEach((ann, idx) => {
-          const isSelected = ann.id === state.selectedAnnotationId;
-          const row = document.createElement('div');
-          row.className = `p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition ${
-            isSelected
-              ? 'bg-[#0A84FF]/20 border-[#0A84FF]/50 text-white'
-              : 'bg-white/[0.04] border-white/5 text-zinc-300 hover:bg-white/[0.08]'
-          }`;
-
-          let toolIcon = 'ph-angle';
-          let readoutText = '';
-
-          if (ann.type === 'angle') {
-            toolIcon = 'ph-angle';
-            const geom = calculateJointAngleGeometry(ann.vertex, ann.p1, ann.p2, stageW, stageH, ann.reflex);
-            readoutText = geom.degrees.toFixed(1) + '°';
-          } else if (ann.type === 'line') {
-            toolIcon = 'ph-line-segment';
-            readoutText = 'Line';
-          } else if (ann.type === 'plumb') {
-            toolIcon = 'ph-arrows-out-line-vertical';
-            readoutText = ann.orientation === 'horizontal' ? '0° Level' : '90° Plumb';
-          } else if (ann.type === 'arrow') {
-            toolIcon = 'ph-arrow-up-right';
-            readoutText = 'Vector';
-          } else if (ann.type === 'circle') {
-            toolIcon = 'ph-circle';
-            readoutText = 'Circle';
-          } else if (ann.type === 'pen') {
-            toolIcon = 'ph-scribble-loop';
-            readoutText = 'Path';
-          }
-
-          const displayTitle = ann.label && ann.label.trim() ? ann.label.trim() : `Measurement #${idx + 1}`;
-
-          row.innerHTML = `
-            <div class="flex items-center gap-2.5 min-w-0">
-              <span class="w-3 h-3 rounded-full shrink-0 shadow-sm" style="background-color: ${ann.color || '#FFD60A'};"></span>
-              <i class="ph-bold ${toolIcon} text-base shrink-0 opacity-80"></i>
-              <div class="min-w-0">
-                <p class="text-xs font-medium truncate ${isSelected ? 'text-white' : 'text-zinc-200'}">${displayTitle}</p>
-                <p class="text-[10px] font-mono opacity-70">${readoutText}</p>
-              </div>
-            </div>
-            <button class="delete-row-btn w-7 h-7 rounded-lg text-zinc-400 hover:text-[#FF453A] hover:bg-[#FF453A]/15 active:scale-90 flex items-center justify-center transition shrink-0" title="Delete">
-              <i class="ph-bold ph-trash text-sm"></i>
-            </button>
-          `;
-
-          row.addEventListener('click', (e) => {
-            if (e.target.closest('.delete-row-btn')) return;
-            state.selectedAnnotationId = ann.id;
-            updateInspectorSidebar();
-            renderAll();
-          });
-
-          const delBtn = row.querySelector('.delete-row-btn');
-          delBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            saveUndoSnapshot();
-            state.annotations = state.annotations.filter(a => a.id !== ann.id);
-            if (state.selectedAnnotationId === ann.id) {
-              state.selectedAnnotationId = null;
-            }
-            updateInspectorSidebar();
-            renderAll();
-          });
-
-          annotationsListContainer.appendChild(row);
-        });
+    canvas.addEventListener('pointermove', (e) => {
+      const pt = getCanvasCoords(e);
+      if (loupe.style.display === 'block') {
+        updateLoupe(pt);
       }
+    });
 
-      // =========================================================================
-      // 5. RESPONSIVE STAGE & OVERLAY SYNCHRONIZATION
-      // =========================================================================
-      function getMediaAspectRatio() {
-        if (state.sourceMode === 'video' && videoEl.videoWidth > 0 && videoEl.videoHeight > 0) {
-          return videoEl.videoWidth / videoEl.videoHeight;
-        }
-        return 16 / 9;
-      }
+    canvas.addEventListener('pointerup', () => {
+      loupe.style.display = 'none';
+      render();
+    });
 
-      function syncStageAndCanvasDimensions() {
-        const rect = workspaceContainer.getBoundingClientRect();
-        const availW = Math.max(240, rect.width - 24);
-        const availH = Math.max(180, rect.height - 24);
+    function updateLoupe(pt) {
+      loupeCtx.clearRect(0, 0, 110, 110);
+      loupeCtx.drawImage(
+        canvas,
+        pt.x - 22, pt.y - 22, 44, 44,
+        0, 0, 110, 110
+      );
+      // Reticle
+      loupeCtx.strokeStyle = '#0A84FF';
+      loupeCtx.lineWidth = 1;
+      loupeCtx.beginPath();
+      loupeCtx.moveTo(55, 0); loupeCtx.lineTo(55, 110);
+      loupeCtx.moveTo(0, 55); loupeCtx.lineTo(110, 55);
+      loupeCtx.stroke();
+    }
 
-        const targetAspect = getMediaAspectRatio();
-        let stageW = availW;
-        let stageH = stageW / targetAspect;
+    function calcAngleDeg(p1, vertex, p3) {
+      const a = Math.atan2(p1.y - vertex.y, p1.x - vertex.x);
+      const b = Math.atan2(p3.y - vertex.y, p3.x - vertex.x);
+      let deg = Math.abs((a - b) * (180 / Math.PI));
+      if (deg > 180) deg = 360 - deg;
+      return deg;
+    }
 
-        if (stageH > availH) {
-          stageH = availH;
-          stageW = stageH * targetAspect;
-        }
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        stageW = Math.floor(stageW);
-        stageH = Math.floor(stageH);
+      // Render finalized annotations
+      annotations.forEach(item => {
+        ctx.save();
+        ctx.strokeStyle = '#30D158';
+        ctx.fillStyle = '#30D158';
+        ctx.lineWidth = 2.5;
+        if (item.dashed) ctx.setLineDash([8, 6]);
 
-        stageWrapper.style.width = stageW + 'px';
-        stageWrapper.style.height = stageH + 'px';
-
-        const dpr = window.devicePixelRatio || 1;
-
-        simCanvas.width = Math.round(stageW * dpr);
-        simCanvas.height = Math.round(stageH * dpr);
-        simCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-        annotationCanvas.width = Math.round(stageW * dpr);
-        annotationCanvas.height = Math.round(stageH * dpr);
-        annCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-        renderAll();
-      }
-
-      // Auto-resizes when sidebar toggles or viewport changes
-      const resizeObserver = new ResizeObserver(() => syncStageAndCanvasDimensions());
-      resizeObserver.observe(workspaceContainer);
-      window.addEventListener('resize', syncStageAndCanvasDimensions);
-      window.addEventListener('orientationchange', () => setTimeout(syncStageAndCanvasDimensions, 150));
-
-      // Sidebar open / close toggle logic
-      function toggleSidebar(forceState) {
-        state.isSidebarOpen = forceState !== undefined ? forceState : !state.isSidebarOpen;
-        if (state.isSidebarOpen) {
-          inspectorSidebar.classList.remove('hidden');
-          sidebarToggleBtn.classList.add('bg-white/10');
-          sidebarToggleIcon.className = 'ph-bold ph-sidebar-simple text-xl text-[#0A84FF]';
-        } else {
-          inspectorSidebar.classList.add('hidden');
-          sidebarToggleBtn.classList.remove('bg-white/10');
-          sidebarToggleIcon.className = 'ph-bold ph-sidebar-simple text-xl text-zinc-300';
-        }
-        // Stage flex-container will automatically resize via ResizeObserver
-      }
-
-      sidebarToggleBtn.addEventListener('click', () => toggleSidebar());
-      closeSidebarBtn.addEventListener('click', () => toggleSidebar(false));
-
-      // =========================================================================
-      // 6. CLEAN MINIMALIST DEMO CLIP
-      // =========================================================================
-      function computeDemoPose(timeSec) {
-        const phase = (timeSec % state.duration) / state.duration;
-        let squatDepth = 0;
-        let jumpHeight = 0;
-        let armSwing = 0;
-
-        if (phase < 0.15) {
-          squatDepth = 0;
-          armSwing = 0;
-        } else if (phase < 0.42) {
-          const p = (phase - 0.15) / 0.27;
-          squatDepth = Math.sin(p * (Math.PI / 2));
-          armSwing = -0.8 * squatDepth;
-        } else if (phase < 0.58) {
-          const p = (phase - 0.42) / 0.16;
-          squatDepth = Math.cos(p * (Math.PI / 2));
-          armSwing = -0.8 + 1.85 * p;
-        } else if (phase < 0.82) {
-          const p = (phase - 0.58) / 0.24;
-          const parabola = 4 * p * (1 - p);
-          jumpHeight = 0.16 * parabola;
-          squatDepth = 0.08 * (1 - parabola);
-          armSwing = 1.05;
-        } else {
-          const p = (phase - 0.82) / 0.18;
-          squatDepth = 0.6 * Math.sin(p * Math.PI);
-          armSwing = 1.05 * (1 - p);
-        }
-
-        const ankleX = 0.49;
-        const ankleY = 0.82 - jumpHeight;
-        const toeX = 0.545;
-        const toeY = 0.85 - jumpHeight;
-
-        const shankLen = 0.185;
-        const dorsiflexRad = 0.14 + squatDepth * 0.52;
-        const kneeX = ankleX + Math.sin(dorsiflexRad) * shankLen * (9 / 16);
-        const kneeY = ankleY - Math.cos(dorsiflexRad) * shankLen;
-
-        const thighLen = 0.195;
-        const thighRad = 0.12 + squatDepth * 0.92;
-        const hipX = kneeX - Math.sin(thighRad) * thighLen * (9 / 16);
-        const hipY = kneeY - Math.cos(thighRad) * thighLen;
-
-        const trunkLen = 0.22;
-        const trunkRad = 0.08 + squatDepth * 0.58;
-        const shoulderX = hipX + Math.sin(trunkRad) * trunkLen * (9 / 16);
-        const shoulderY = hipY - Math.cos(trunkRad) * trunkLen;
-
-        const headX = shoulderX + Math.sin(trunkRad * 0.5) * 0.095 * (9 / 16);
-        const headY = shoulderY - Math.cos(trunkRad * 0.5) * 0.095;
-
-        const shoulderAngle = Math.PI / 2 - armSwing * 1.15;
-        const elbowX = shoulderX + Math.cos(shoulderAngle) * 0.13 * (9 / 16);
-        const elbowY = shoulderY + Math.sin(shoulderAngle) * 0.13;
-        const forearmAngle = shoulderAngle - 0.65 - 0.35 * Math.max(0, armSwing);
-        const wristX = elbowX + Math.cos(forearmAngle) * 0.12 * (9 / 16);
-        const wristY = elbowY + Math.sin(forearmAngle) * 0.12;
-
-        return {
-          head: { x: headX, y: headY },
-          shoulder: { x: shoulderX, y: shoulderY },
-          elbow: { x: elbowX, y: elbowY },
-          wrist: { x: wristX, y: wristY },
-          hip: { x: hipX, y: hipY },
-          knee: { x: kneeX, y: kneeY },
-          ankle: { x: ankleX, y: ankleY },
-          toe: { x: toeX, y: toeY }
-        };
-      }
-
-      function renderDemoClip(ctx, width, height) {
-        ctx.clearRect(0, 0, width, height);
-
-        // Dark biomechanics studio background
-        ctx.fillStyle = '#09090B';
-        ctx.fillRect(0, 0, width, height);
-
-        // Subtle reference grid
-        ctx.lineWidth = 1;
-        const gridStep = width / 16;
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
-        for (let x = 0; x <= width; x += gridStep) {
+        if (item.type === 'angle') {
           ctx.beginPath();
-          ctx.moveTo(x, 0);
-          ctx.lineTo(x, height);
+          ctx.moveTo(item.p1.x, item.p1.y);
+          ctx.lineTo(item.vertex.x, item.vertex.y);
+          ctx.lineTo(item.p3.x, item.p3.y);
           ctx.stroke();
-        }
-        for (let y = 0; y <= height; y += gridStep) {
+
+          // Vertex marker
           ctx.beginPath();
-          ctx.moveTo(0, y);
-          ctx.lineTo(width, y);
-          ctx.stroke();
-        }
-
-        // Clean floor line
-        const floorY = height * 0.85;
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(0, floorY);
-        ctx.lineTo(width, floorY);
-        ctx.stroke();
-
-        const j = computeDemoPose(state.currentTime);
-
-        function drawLimb(pA, pB, thickness, color) {
-          ctx.strokeStyle = color;
-          ctx.lineWidth = thickness;
-          ctx.lineCap = 'round';
-          ctx.beginPath();
-          ctx.moveTo(pA.x * width, pA.y * height);
-          ctx.lineTo(pB.x * width, pB.y * height);
-          ctx.stroke();
-        }
-
-        const segW = Math.max(8, width * 0.013);
-        drawLimb(j.hip, j.shoulder, segW * 1.25, '#52525B');
-        drawLimb(j.shoulder, j.head, segW * 0.7, '#52525B');
-
-        // Head
-        ctx.fillStyle = '#27272A';
-        ctx.strokeStyle = '#A1A1AA';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(j.head.x * width, j.head.y * height, Math.max(13, width * 0.021), 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        // Leg & Arm segments
-        drawLimb(j.hip, j.knee, segW * 1.1, '#71717A');
-        drawLimb(j.knee, j.ankle, segW * 0.95, '#71717A');
-        drawLimb(j.ankle, j.toe, segW * 0.75, '#71717A');
-        drawLimb(j.shoulder, j.elbow, segW * 0.8, '#A1A1AA');
-        drawLimb(j.elbow, j.wrist, segW * 0.7, '#A1A1AA');
-
-        // Retro-reflective style joint dots
-        ['shoulder', 'elbow', 'wrist', 'hip', 'knee', 'ankle', 'toe'].forEach((key) => {
-          const pt = j[key];
-          const px = pt.x * width;
-          const py = pt.y * height;
-
-          ctx.fillStyle = '#FFFFFF';
-          ctx.strokeStyle = '#0A84FF';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.arc(px, py, 5, 0, Math.PI * 2);
+          ctx.arc(item.vertex.x, item.vertex.y, 6, 0, Math.PI * 2);
+          ctx.fillStyle = '#0A84FF';
           ctx.fill();
           ctx.stroke();
-        });
-      }
 
-      // =========================================================================
-      // 7. ANNOTATION RENDERING ENGINE
-      // =========================================================================
-      function renderAnnotations(ctx, width, height, isExporting = false) {
-        if (!isExporting) {
-          ctx.clearRect(0, 0, width, height);
-        }
+          // Degree calculation
+          let val = calcAngleDeg(item.p1, item.vertex, item.p3);
+          if (item.isReflex) val = 360 - val;
 
-        const all = [...state.annotations];
-        if (state.pendingAngle) all.push(state.pendingAngle);
-
-        all.forEach((ann) => {
-          const isSelected = ann.id === state.selectedAnnotationId;
-          ctx.save();
-
-          if (ann.type === 'angle') {
-            renderAngleAnnotation(ctx, ann, width, height, isSelected);
-          } else if (ann.type === 'line') {
-            renderLineAnnotation(ctx, ann, width, height, isSelected);
-          } else if (ann.type === 'plumb') {
-            renderPlumbAnnotation(ctx, ann, width, height, isSelected);
-          } else if (ann.type === 'arrow') {
-            renderArrowAnnotation(ctx, ann, width, height, isSelected);
-          } else if (ann.type === 'circle') {
-            renderCircleAnnotation(ctx, ann, width, height, isSelected);
-          } else if (ann.type === 'pen') {
-            renderPenAnnotation(ctx, ann, width, height);
-          }
-
-          ctx.restore();
-        });
-
-        // Always-On Precision Loupe whenever touching/dragging on the canvas
-        if (!isExporting && state.pointerPos.active) {
-          renderPrecisionLoupe(ctx, width, height);
-        }
-      }
-
-      function renderAngleAnnotation(ctx, ann, width, height, isSelected) {
-        const color = ann.color || '#FFD60A';
-        const lw = ann.strokeWidth || 3;
-
-        if (ann.p1 && !ann.vertex) {
-          drawControlHandle(ctx, ann.p1.x * width, ann.p1.y * height, color, isSelected, false);
-          return;
-        }
-
-        const v = { x: ann.vertex.x * width, y: ann.vertex.y * height };
-        const p1 = { x: ann.p1.x * width, y: ann.p1.y * height };
-
-        ctx.save();
-        if (ann.lineStyle === 'dashed') ctx.setLineDash([8, 6]);
-        else ctx.setLineDash([]);
-
-        // Segment 1: p1 -> vertex
-        ctx.strokeStyle = 'rgba(0,0,0,0.65)';
-        ctx.lineWidth = lw + 2.5;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(v.x, v.y);
-        ctx.stroke();
-
-        ctx.strokeStyle = color;
-        ctx.lineWidth = lw;
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(v.x, v.y);
-        ctx.stroke();
-
-        if (ann.p2) {
-          const p2 = { x: ann.p2.x * width, y: ann.p2.y * height };
-
-          // Segment 2: vertex -> p2
-          ctx.strokeStyle = 'rgba(0,0,0,0.65)';
-          ctx.lineWidth = lw + 2.5;
-          ctx.beginPath();
-          ctx.moveTo(v.x, v.y);
-          ctx.lineTo(p2.x, p2.y);
+          // Pill tag
+          const txt = `${item.label || 'Joint'} · ${val.toFixed(1)}°`;
+          ctx.font = '500 13px -apple-system, sans-serif';
+          const tw = ctx.measureText(txt).width;
+          ctx.fillStyle = 'rgba(0,0,0,0.75)';
+          ctx.roundRect(item.vertex.x + 12, item.vertex.y - 12, tw + 16, 24, 6);
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(255,255,255,0.2)';
           ctx.stroke();
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillText(txt, item.vertex.x + 20, item.vertex.y + 4);
 
-          ctx.strokeStyle = color;
-          ctx.lineWidth = lw;
+        } else if (item.type === 'line' || item.type === 'plumb') {
           ctx.beginPath();
-          ctx.moveTo(v.x, v.y);
-          ctx.lineTo(p2.x, p2.y);
+          ctx.moveTo(item.p1.x, item.p1.y);
+          ctx.lineTo(item.p2.x, item.p2.y);
           ctx.stroke();
-
-          // Interior / Reflex Arc anchored at Point 2 (Vertex)
-          const geom = calculateJointAngleGeometry(ann.vertex, ann.p1, ann.p2, width, height, ann.reflex);
-          const dist1 = Math.hypot(p1.x - v.x, p1.y - v.y);
-          const dist2 = Math.hypot(p2.x - v.x, p2.y - v.y);
-          const arcRadius = clamp(Math.min(dist1, dist2) * 0.35, 18, 52);
-
-          ctx.setLineDash([]);
-          ctx.fillStyle = color + '28';
+        } else if (item.type === 'arrow') {
           ctx.beginPath();
-          ctx.moveTo(v.x, v.y);
-          ctx.arc(v.x, v.y, arcRadius, geom.startAngle, geom.endAngle, geom.anticlockwise);
+          ctx.moveTo(item.p1.x, item.p1.y);
+          ctx.lineTo(item.p2.x, item.p2.y);
+          ctx.stroke();
+          // Arrowhead
+          const angle = Math.atan2(item.p2.y - item.p1.y, item.p2.x - item.p1.x);
+          ctx.fillStyle = '#30D158';
+          ctx.beginPath();
+          ctx.moveTo(item.p2.x, item.p2.y);
+          ctx.lineTo(item.p2.x - 12 * Math.cos(angle - Math.PI / 6), item.p2.y - 12 * Math.sin(angle - Math.PI / 6));
+          ctx.lineTo(item.p2.x - 12 * Math.cos(angle + Math.PI / 6), item.p2.y - 12 * Math.sin(angle + Math.PI / 6));
           ctx.closePath();
           ctx.fill();
+        }
+        ctx.restore();
+      });
 
-          ctx.strokeStyle = color;
-          ctx.lineWidth = 2;
+      // Render points in progress
+      if (tempPoints.length > 0) {
+        ctx.fillStyle = '#0A84FF';
+        tempPoints.forEach(p => {
           ctx.beginPath();
-          ctx.arc(v.x, v.y, arcRadius, geom.startAngle, geom.endAngle, geom.anticlockwise);
-          ctx.stroke();
-
-          // Pill Badge displaying Name + Degrees (e.g. "Knee · 114.2°")
-          const labelDist = arcRadius + 28;
-          const lx = clamp(v.x + Math.cos(geom.bisector) * labelDist, 48, width - 48);
-          const ly = clamp(v.y + Math.sin(geom.bisector) * labelDist, 22, height - 22);
-          const degText = geom.degrees.toFixed(1) + '°';
-          const fullLabel = ann.label && ann.label.trim() ? `${ann.label.trim()} · ${degText}` : degText;
-
-          const badgeBounds = drawPillBadge(ctx, lx, ly, fullLabel, color, isSelected);
-          ann._lastBadgeBounds = {
-            x: lx / width,
-            y: ly / height,
-            w: badgeBounds.w,
-            h: badgeBounds.h
-          };
-        }
-        ctx.restore();
-
-        drawControlHandle(ctx, p1.x, p1.y, color, isSelected, false);
-        drawControlHandle(ctx, v.x, v.y, color, isSelected, true);
-        if (ann.p2) drawControlHandle(ctx, ann.p2.x * width, ann.p2.y * height, color, isSelected, false);
-      }
-
-      function renderLineAnnotation(ctx, ann, width, height, isSelected) {
-        const p1 = { x: ann.p1.x * width, y: ann.p1.y * height };
-        const p2 = { x: ann.p2.x * width, y: ann.p2.y * height };
-        const color = ann.color || '#FFD60A';
-        const lw = ann.strokeWidth || 3;
-
-        ctx.save();
-        if (ann.lineStyle === 'dashed') ctx.setLineDash([8, 6]);
-        else ctx.setLineDash([]);
-
-        ctx.strokeStyle = 'rgba(0,0,0,0.65)';
-        ctx.lineWidth = lw + 2.5;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.stroke();
-
-        ctx.strokeStyle = color;
-        ctx.lineWidth = lw;
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.stroke();
-        ctx.restore();
-
-        if (ann.label && ann.label.trim()) {
-          const midX = (p1.x + p2.x) / 2;
-          const midY = (p1.y + p2.y) / 2;
-          drawPillBadge(ctx, clamp(midX, 44, width - 44), clamp(midY - 16, 20, height - 20), ann.label.trim(), color, isSelected);
-        }
-
-        drawControlHandle(ctx, p1.x, p1.y, color, isSelected, false);
-        drawControlHandle(ctx, p2.x, p2.y, color, isSelected, false);
-      }
-
-      function renderPlumbAnnotation(ctx, ann, width, height, isSelected) {
-        const p1 = { x: ann.p1.x * width, y: ann.p1.y * height };
-        const p2 = { x: ann.p2.x * width, y: ann.p2.y * height };
-        const color = ann.color || '#30D158';
-        const lw = ann.strokeWidth || 3;
-
-        // Subtle guide across entire frame
-        ctx.save();
-        ctx.strokeStyle = color + '35';
-        ctx.lineWidth = 1;
-        ctx.setLineDash([4, 4]);
-        ctx.beginPath();
-        if (ann.orientation === 'horizontal') {
-          ctx.moveTo(0, p1.y);
-          ctx.lineTo(width, p1.y);
-        } else {
-          ctx.moveTo(p1.x, 0);
-          ctx.lineTo(p1.x, height);
-        }
-        ctx.stroke();
-        ctx.restore();
-
-        ctx.save();
-        const dashPattern = ann.lineStyle === 'solid' ? [] : [8, 6];
-        ctx.strokeStyle = 'rgba(0,0,0,0.65)';
-        ctx.lineWidth = lw + 2.5;
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.stroke();
-
-        ctx.strokeStyle = color;
-        ctx.lineWidth = lw;
-        ctx.setLineDash(dashPattern);
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.stroke();
-        ctx.restore();
-
-        const midX = (p1.x + p2.x) / 2;
-        const midY = (p1.y + p2.y) / 2;
-        const defaultTag = ann.orientation === 'horizontal' ? '0° Level' : '90° Plumb';
-        const tag = ann.label && ann.label.trim() ? `${ann.label.trim()} · ${defaultTag}` : defaultTag;
-
-        drawPillBadge(
-          ctx,
-          clamp(midX + (ann.orientation === 'horizontal' ? 0 : 48), 50, width - 50),
-          clamp(midY + (ann.orientation === 'horizontal' ? -18 : 0), 20, height - 20),
-          tag,
-          color,
-          isSelected
-        );
-
-        drawControlHandle(ctx, p1.x, p1.y, color, isSelected, false);
-        drawControlHandle(ctx, p2.x, p2.y, color, isSelected, false);
-      }
-
-      function renderArrowAnnotation(ctx, ann, width, height, isSelected) {
-        const p1 = { x: ann.p1.x * width, y: ann.p1.y * height };
-        const p2 = { x: ann.p2.x * width, y: ann.p2.y * height };
-        const color = ann.color || '#FF453A';
-        const lw = ann.strokeWidth || 3;
-
-        const dx = p2.x - p1.x;
-        const dy = p2.y - p1.y;
-        const angle = Math.atan2(dy, dx);
-        const lengthPx = Math.hypot(dx, dy);
-        const headLen = clamp(lengthPx * 0.22, 14, 22);
-
-        ctx.save();
-        if (ann.lineStyle === 'dashed') ctx.setLineDash([8, 6]);
-        else ctx.setLineDash([]);
-
-        ctx.strokeStyle = 'rgba(0,0,0,0.65)';
-        ctx.lineWidth = lw + 2.5;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.stroke();
-
-        ctx.strokeStyle = color;
-        ctx.lineWidth = lw;
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.stroke();
-        ctx.restore();
-
-        // Arrowhead
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.moveTo(p2.x, p2.y);
-        ctx.lineTo(p2.x - headLen * Math.cos(angle - Math.PI / 6), p2.y - headLen * Math.sin(angle - Math.PI / 6));
-        ctx.lineTo(p2.x - headLen * 0.72 * Math.cos(angle), p2.y - headLen * 0.72 * Math.sin(angle));
-        ctx.lineTo(p2.x - headLen * Math.cos(angle + Math.PI / 6), p2.y - headLen * Math.sin(angle + Math.PI / 6));
-        ctx.closePath();
-        ctx.fill();
-
-        if (ann.label && ann.label.trim()) {
-          const midX = (p1.x + p2.x) / 2;
-          const midY = (p1.y + p2.y) / 2;
-          drawPillBadge(ctx, clamp(midX + 24, 48, width - 48), clamp(midY - 14, 20, height - 20), ann.label.trim(), color, isSelected);
-        }
-
-        drawControlHandle(ctx, p1.x, p1.y, color, isSelected, false);
-        drawControlHandle(ctx, p2.x, p2.y, color, isSelected, false);
-      }
-
-      function renderCircleAnnotation(ctx, ann, width, height, isSelected) {
-        const cx = ann.center.x * width;
-        const cy = ann.center.y * height;
-        const ex = ann.edge.x * width;
-        const ey = ann.edge.y * height;
-        const radius = Math.max(8, Math.hypot(ex - cx, ey - cy));
-        const color = ann.color || '#0A84FF';
-        const lw = ann.strokeWidth || 3;
-
-        ctx.save();
-        if (ann.lineStyle === 'dashed') ctx.setLineDash([8, 6]);
-        else ctx.setLineDash([]);
-
-        ctx.strokeStyle = 'rgba(0,0,0,0.65)';
-        ctx.lineWidth = lw + 2.5;
-        ctx.beginPath();
-        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-        ctx.stroke();
-
-        ctx.strokeStyle = color;
-        ctx.lineWidth = lw;
-        ctx.beginPath();
-        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-
-        // Center point dot
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
-        ctx.fill();
-
-        if (ann.label && ann.label.trim()) {
-          drawPillBadge(ctx, clamp(cx, 44, width - 44), clamp(cy - radius - 16, 20, height - 20), ann.label.trim(), color, isSelected);
-        }
-
-        if (isSelected) {
-          drawControlHandle(ctx, cx, cy, color, true, false);
-          drawControlHandle(ctx, ex, ey, color, true, false);
-        }
-      }
-
-      function renderPenAnnotation(ctx, ann, width, height) {
-        if (!ann.points || ann.points.length < 2) return;
-        const color = ann.color || '#FFD60A';
-        const lw = ann.strokeWidth || 3;
-
-        ctx.save();
-        if (ann.lineStyle === 'dashed') ctx.setLineDash([8, 6]);
-        else ctx.setLineDash([]);
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        const drawSpline = () => {
-          ctx.beginPath();
-          ctx.moveTo(ann.points[0].x * width, ann.points[0].y * height);
-          for (let i = 1; i < ann.points.length - 1; i++) {
-            const xc = ((ann.points[i].x + ann.points[i + 1].x) / 2) * width;
-            const yc = ((ann.points[i].y + ann.points[i + 1].y) / 2) * height;
-            ctx.quadraticCurveTo(ann.points[i].x * width, ann.points[i].y * height, xc, yc);
-          }
-          const last = ann.points[ann.points.length - 1];
-          ctx.lineTo(last.x * width, last.y * height);
-          ctx.stroke();
-        };
-
-        ctx.strokeStyle = 'rgba(0,0,0,0.65)';
-        ctx.lineWidth = lw + 2.5;
-        drawSpline();
-
-        ctx.strokeStyle = color;
-        ctx.lineWidth = lw;
-        drawSpline();
-        ctx.restore();
-      }
-
-      function drawPillBadge(ctx, x, y, text, accentColor, isSelected) {
-        ctx.save();
-        ctx.font = '600 12px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
-        const metrics = ctx.measureText(text);
-        const padX = 10;
-        const boxW = metrics.width + padX * 2;
-        const boxH = 26;
-
-        ctx.fillStyle = 'rgba(20, 20, 22, 0.88)';
-        ctx.strokeStyle = isSelected ? '#FFFFFF' : accentColor;
-        ctx.lineWidth = isSelected ? 2 : 1.25;
-
-        ctx.beginPath();
-        ctx.roundRect(x - boxW / 2, y - boxH / 2, boxW, boxH, 13);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = '#FFFFFF';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(text, x, y + 0.5);
-        ctx.restore();
-
-        return { w: boxW, h: boxH };
-      }
-
-      function drawControlHandle(ctx, x, y, color, isSelected, isVertex) {
-        ctx.save();
-        const radius = isSelected ? 7.5 : 6;
-
-        if (isVertex) {
-          ctx.strokeStyle = color;
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.arc(x, y, radius + 4.5, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-
-        ctx.fillStyle = '#1C1C1E';
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = '#FFFFFF';
-        ctx.beginPath();
-        ctx.arc(x, y, 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      }
-
-      /**
-       * Always-On Magnifier Loupe (Pencil tip or finger never obscures point)
-       */
-      function renderPrecisionLoupe(ctx, width, height) {
-        const px = state.pointerPos.x * width;
-        const py = state.pointerPos.y * height;
-
-        const loupeRadius = 56;
-        const margin = 16;
-        const loupeX = px < width * 0.45 ? width - loupeRadius - margin : loupeRadius + margin;
-        const loupeY = loupeRadius + margin;
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(loupeX, loupeY, loupeRadius, 0, Math.PI * 2);
-        ctx.clip();
-
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(loupeX - loupeRadius, loupeY - loupeRadius, loupeRadius * 2, loupeRadius * 2);
-
-        const zoom = 2.25;
-        const srcEl = state.sourceMode === 'video' ? videoEl : simCanvas;
-        const srcW = state.sourceMode === 'video' ? (videoEl.videoWidth || width) : simCanvas.width;
-        const srcH = state.sourceMode === 'video' ? (videoEl.videoHeight || height) : simCanvas.height;
-
-        const sx = state.pointerPos.x * srcW - (loupeRadius * (srcW / width)) / zoom;
-        const sy = state.pointerPos.y * srcH - (loupeRadius * (srcH / height)) / zoom;
-        const sWidth = (loupeRadius * 2 * (srcW / width)) / zoom;
-        const sHeight = (loupeRadius * 2 * (srcH / height)) / zoom;
-
-        try {
-          ctx.drawImage(
-            srcEl,
-            sx,
-            sy,
-            sWidth,
-            sHeight,
-            loupeX - loupeRadius,
-            loupeY - loupeRadius,
-            loupeRadius * 2,
-            loupeRadius * 2
-          );
-        } catch (err) {
-          // Video frame decoding in progress
-        }
-
-        // Loupe crosshair
-        ctx.strokeStyle = state.activeColor || '#FFD60A';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(loupeX - 18, loupeY);
-        ctx.lineTo(loupeX + 18, loupeY);
-        ctx.moveTo(loupeX, loupeY - 18);
-        ctx.lineTo(loupeX, loupeY + 18);
-        ctx.stroke();
-
-        ctx.restore();
-
-        // Loupe bezel
-        ctx.save();
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(loupeX, loupeY, loupeRadius, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-      }
-
-      // =========================================================================
-      // 8. MASTER RENDER & PLAYBACK LOOP
-      // =========================================================================
-      let lastAnimTimestamp = performance.now();
-
-      function renderAll() {
-        const rect = stageWrapper.getBoundingClientRect();
-        const w = rect.width;
-        const h = rect.height;
-        if (w <= 0 || h <= 0) return;
-
-        if (state.sourceMode !== 'video') {
-          renderDemoClip(simCtx, w, h);
-        }
-        renderAnnotations(annCtx, w, h, false);
-        updateTransportReadouts();
-      }
-
-      function updateTransportReadouts() {
-        const curT = state.sourceMode === 'video' ? (videoEl.currentTime || 0) : state.currentTime;
-        const durT = state.sourceMode === 'video' ? (videoEl.duration || 1) : state.duration;
-
-        timeReadout.textContent = formatTime(curT);
-        durationReadout.textContent = formatTime(durT);
-
-        if (!timelineScrubber._isScrubbing && durT > 0) {
-          timelineScrubber.value = Math.round((curT / durT) * 1000);
-        }
-      }
-
-      function animationTick(now) {
-        const dt = (now - lastAnimTimestamp) / 1000;
-        lastAnimTimestamp = now;
-
-        if (state.isPlaying) {
-          if (state.sourceMode === 'video') {
-            state.currentTime = videoEl.currentTime;
-            if (videoEl.ended) {
-              videoEl.currentTime = 0;
-              videoEl.play().catch(() => {});
-            }
-          } else {
-            state.currentTime = (state.currentTime + dt * state.playbackRate) % state.duration;
-          }
-          renderAll();
-        }
-        requestAnimationFrame(animationTick);
-      }
-
-      // =========================================================================
-      // 9. TOUCH & APPLE PENCIL INTERACTION ENGINE
-      // =========================================================================
-      function getNormalizedPointerCoords(e) {
-        const rect = annotationCanvas.getBoundingClientRect();
-        const x = clamp((e.clientX - rect.left) / rect.width, 0, 1);
-        const y = clamp((e.clientY - rect.top) / rect.height, 0, 1);
-        return { x, y, width: rect.width, height: rect.height };
-      }
-
-      function findHitTarget(normX, normY, width, height) {
-        const px = normX * width;
-        const py = normY * height;
-        const hitRadius = 26; // Generous 52px target for iPad touch
-
-        for (let i = state.annotations.length - 1; i >= 0; i--) {
-          const ann = state.annotations[i];
-
-          if (ann.type === 'angle') {
-            const handles = [
-              { key: 'p1', pt: ann.p1 },
-              { key: 'vertex', pt: ann.vertex },
-              { key: 'p2', pt: ann.p2 }
-            ];
-            for (const h of handles) {
-              if (h.pt && Math.hypot(h.pt.x * width - px, h.pt.y * height - py) <= hitRadius) {
-                return { annotation: ann, handleKey: h.key };
-              }
-            }
-            if (ann._lastBadgeBounds) {
-              const bx = ann._lastBadgeBounds.x * width;
-              const by = ann._lastBadgeBounds.y * height;
-              const halfW = (ann._lastBadgeBounds.w || 64) / 2 + 10;
-              const halfH = (ann._lastBadgeBounds.h || 28) / 2 + 10;
-              if (Math.abs(px - bx) <= halfW && Math.abs(py - by) <= halfH) {
-                return { annotation: ann, handleKey: 'badge' };
-              }
-            }
-          } else if (ann.type === 'line' || ann.type === 'plumb' || ann.type === 'arrow') {
-            if (Math.hypot(ann.p1.x * width - px, ann.p1.y * height - py) <= hitRadius) {
-              return { annotation: ann, handleKey: 'p1' };
-            }
-            if (Math.hypot(ann.p2.x * width - px, ann.p2.y * height - py) <= hitRadius) {
-              return { annotation: ann, handleKey: 'p2' };
-            }
-          } else if (ann.type === 'circle') {
-            if (Math.hypot(ann.edge.x * width - px, ann.edge.y * height - py) <= hitRadius) {
-              return { annotation: ann, handleKey: 'edge' };
-            }
-            if (Math.hypot(ann.center.x * width - px, ann.center.y * height - py) <= hitRadius) {
-              return { annotation: ann, handleKey: 'center' };
-            }
-          } else if (ann.type === 'pen' && ann.points && ann.points.length) {
-            for (const pt of ann.points) {
-              if (Math.hypot(pt.x * width - px, pt.y * height - py) <= 18) {
-                return { annotation: ann, handleKey: 'pen-select' };
-              }
-            }
-          }
-        }
-        return null;
-      }
-
-      annotationCanvas.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        annotationCanvas.setPointerCapture(e.pointerId);
-
-        const pos = getNormalizedPointerCoords(e);
-        state.pointerPos = { x: pos.x, y: pos.y, active: true };
-
-        // 1. Select / Drag existing landmark handle or badge
-        if (!state.pendingAngle) {
-          const hit = findHitTarget(pos.x, pos.y, pos.width, pos.height);
-          if (hit) {
-            state.selectedAnnotationId = hit.annotation.id;
-            updateInspectorSidebar();
-
-            if (hit.handleKey === 'badge' || hit.handleKey === 'pen-select') {
-              state.pointerPos.active = false;
-              renderAll();
-              return;
-            }
-
-            saveUndoSnapshot();
-            state.activeDrag = {
-              type: 'handle',
-              annotation: hit.annotation,
-              handleKey: hit.handleKey
-            };
-            renderAll();
-            return;
-          }
-        }
-
-        // Tap empty space in select mode
-        if (state.activeTool === 'select') {
-          state.selectedAnnotationId = null;
-          state.pointerPos.active = false;
-          updateInspectorSidebar();
-          renderAll();
-          return;
-        }
-
-        // 2. Create New Annotation Based on Active Tool
-        if (state.activeTool === 'angle') {
-          // Tap 1 = First limb point, Tap 2 = Joint Vertex, Tap 3 = Second limb point
-          if (!state.pendingAngle) {
-            state.pendingAngle = {
-              id: uid(),
-              type: 'angle',
-              label: '',
-              color: state.activeColor,
-              strokeWidth: state.strokeWidth,
-              lineStyle: state.lineStyle,
-              p1: { x: pos.x, y: pos.y },
-              vertex: null,
-              p2: null,
-              reflex: false
-            };
-            hudPromptText.textContent = 'Tap Joint Center (vertex)';
-            updateInspectorSidebar();
-          } else if (!state.pendingAngle.vertex) {
-            state.pendingAngle.vertex = { x: pos.x, y: pos.y };
-            hudPromptText.textContent = 'Tap 3rd limb point';
-          } else {
-            saveUndoSnapshot();
-            state.pendingAngle.p2 = { x: pos.x, y: pos.y };
-            const completed = state.pendingAngle;
-            state.annotations.push(completed);
-            state.selectedAnnotationId = completed.id;
-            state.pendingAngle = null;
-            hudPromptText.textContent = 'Angle placed. Edit label in Inspector sidebar';
-
-            state.activeDrag = {
-              type: 'handle',
-              annotation: completed,
-              handleKey: 'p2'
-            };
-            updateInspectorSidebar();
-          }
-          renderAll();
-        } else if (state.activeTool === 'line') {
-          saveUndoSnapshot();
-          const newLine = {
-            id: uid(),
-            type: 'line',
-            label: '',
-            color: state.activeColor,
-            strokeWidth: state.strokeWidth,
-            lineStyle: state.lineStyle,
-            p1: { x: pos.x, y: pos.y },
-            p2: { x: pos.x, y: pos.y }
-          };
-          state.annotations.push(newLine);
-          state.selectedAnnotationId = newLine.id;
-          state.activeDrag = { type: 'create-line', annotation: newLine };
-          updateInspectorSidebar();
-          renderAll();
-        } else if (state.activeTool === 'plumb') {
-          saveUndoSnapshot();
-          const newPlumb = {
-            id: uid(),
-            type: 'plumb',
-            label: '',
-            color: state.activeColor,
-            strokeWidth: state.strokeWidth,
-            lineStyle: state.lineStyle,
-            orientation: 'vertical',
-            p1: { x: pos.x, y: pos.y },
-            p2: { x: pos.x, y: clamp(pos.y + 0.16, 0.05, 0.95) }
-          };
-          state.annotations.push(newPlumb);
-          state.selectedAnnotationId = newPlumb.id;
-          state.activeDrag = { type: 'create-plumb', annotation: newPlumb };
-          updateInspectorSidebar();
-          renderAll();
-        } else if (state.activeTool === 'arrow') {
-          saveUndoSnapshot();
-          const newArrow = {
-            id: uid(),
-            type: 'arrow',
-            label: '',
-            color: state.activeColor,
-            strokeWidth: state.strokeWidth,
-            lineStyle: state.lineStyle,
-            p1: { x: pos.x, y: pos.y },
-            p2: { x: pos.x, y: pos.y }
-          };
-          state.annotations.push(newArrow);
-          state.selectedAnnotationId = newArrow.id;
-          state.activeDrag = { type: 'create-arrow', annotation: newArrow };
-          updateInspectorSidebar();
-          renderAll();
-        } else if (state.activeTool === 'circle') {
-          saveUndoSnapshot();
-          const newCircle = {
-            id: uid(),
-            type: 'circle',
-            label: '',
-            color: state.activeColor,
-            strokeWidth: state.strokeWidth,
-            lineStyle: state.lineStyle,
-            center: { x: pos.x, y: pos.y },
-            edge: { x: clamp(pos.x + 0.035, 0, 1), y: pos.y }
-          };
-          state.annotations.push(newCircle);
-          state.selectedAnnotationId = newCircle.id;
-          state.activeDrag = { type: 'create-circle', annotation: newCircle };
-          updateInspectorSidebar();
-          renderAll();
-        } else if (state.activeTool === 'pen') {
-          saveUndoSnapshot();
-          const newPen = {
-            id: uid(),
-            type: 'pen',
-            label: '',
-            color: state.activeColor,
-            strokeWidth: state.strokeWidth,
-            lineStyle: state.lineStyle,
-            points: [{ x: pos.x, y: pos.y }]
-          };
-          state.annotations.push(newPen);
-          state.selectedAnnotationId = newPen.id;
-          state.activeDrag = { type: 'create-pen', annotation: newPen };
-          updateInspectorSidebar();
-          renderAll();
-        }
-      });
-
-      annotationCanvas.addEventListener('pointermove', (e) => {
-        if (!state.pointerPos.active && !state.activeDrag) return;
-        const pos = getNormalizedPointerCoords(e);
-        state.pointerPos.x = pos.x;
-        state.pointerPos.y = pos.y;
-
-        if (!state.activeDrag) {
-          renderAll();
-          return;
-        }
-        e.preventDefault();
-
-        const drag = state.activeDrag;
-        const ann = drag.annotation;
-
-        if (drag.type === 'handle') {
-          if (ann.type === 'angle' || ann.type === 'line' || ann.type === 'arrow') {
-            ann[drag.handleKey] = { x: pos.x, y: pos.y };
-          } else if (ann.type === 'plumb') {
-            if (drag.handleKey === 'p1') {
-              ann.p1 = { x: pos.x, y: pos.y };
-              if (ann.orientation === 'vertical') ann.p2.x = pos.x;
-              else ann.p2.y = pos.y;
-            } else {
-              ann.p2 = { x: pos.x, y: pos.y };
-              if (ann.orientation === 'vertical') ann.p1.x = pos.x;
-              else ann.p1.y = pos.y;
-            }
-          } else if (ann.type === 'circle') {
-            if (drag.handleKey === 'center') {
-              const dx = pos.x - ann.center.x;
-              const dy = pos.y - ann.center.y;
-              ann.center = { x: pos.x, y: pos.y };
-              ann.edge = { x: clamp(ann.edge.x + dx, 0, 1), y: clamp(ann.edge.y + dy, 0, 1) };
-            } else {
-              ann.edge = { x: pos.x, y: pos.y };
-            }
-          }
-        } else if (drag.type === 'create-line' || drag.type === 'create-arrow') {
-          ann.p2 = { x: pos.x, y: pos.y };
-        } else if (drag.type === 'create-plumb') {
-          const dxPx = Math.abs(pos.x - ann.p1.x) * pos.width;
-          const dyPx = Math.abs(pos.y - ann.p1.y) * pos.height;
-          if (dxPx > dyPx && dxPx > 12) {
-            ann.orientation = 'horizontal';
-            ann.p2 = { x: pos.x, y: ann.p1.y };
-          } else {
-            ann.orientation = 'vertical';
-            ann.p2 = { x: ann.p1.x, y: pos.y };
-          }
-        } else if (drag.type === 'create-circle') {
-          ann.edge = { x: pos.x, y: pos.y };
-        } else if (drag.type === 'create-pen') {
-          const pts = ann.points;
-          const last = pts[pts.length - 1];
-          if (Math.hypot((pos.x - last.x) * pos.width, (pos.y - last.y) * pos.height) > 3) {
-            pts.push({ x: pos.x, y: pos.y });
-          }
-        }
-
-        renderAll();
-        updateInspectorSidebar();
-      });
-
-      function endPointerInteraction() {
-        if (state.activeDrag) {
-          const drag = state.activeDrag;
-          if (drag.type === 'create-arrow' || drag.type === 'create-line') {
-            const ann = drag.annotation;
-            if (Math.hypot(ann.p2.x - ann.p1.x, ann.p2.y - ann.p1.y) < 0.02) {
-              ann.p2 = { x: clamp(ann.p1.x + 0.08, 0, 0.98), y: clamp(ann.p1.y - 0.12, 0.02, 1) };
-            }
-          }
-          state.activeDrag = null;
-        }
-        state.pointerPos.active = false;
-        updateInspectorSidebar();
-        renderAll();
-      }
-
-      annotationCanvas.addEventListener('pointerup', endPointerInteraction);
-      annotationCanvas.addEventListener('pointercancel', endPointerInteraction);
-
-      // =========================================================================
-      // 10. SIDEBAR INSPECTOR EVENT LISTENERS
-      // =========================================================================
-      annotationNameInput.addEventListener('input', () => {
-        const sel = state.annotations.find(a => a.id === state.selectedAnnotationId);
-        if (sel) {
-          sel.label = annotationNameInput.value;
-          renderMeasurementsList();
-          renderAll();
-        }
-      });
-
-      annotationNameInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          annotationNameInput.blur();
-        }
-      });
-
-      clearNameBtn.addEventListener('click', () => {
-        const sel = state.annotations.find(a => a.id === state.selectedAnnotationId);
-        if (sel) {
-          sel.label = '';
-          annotationNameInput.value = '';
-          updateInspectorSidebar();
-          renderAll();
-        }
-      });
-
-      presetChips.forEach((chip) => {
-        chip.addEventListener('click', () => {
-          const sel = state.annotations.find(a => a.id === state.selectedAnnotationId);
-          if (!sel) return;
-          const presetName = chip.dataset.preset;
-          sel.label = sel.label === presetName ? '' : presetName;
-          annotationNameInput.value = sel.label;
-          updateInspectorSidebar();
-          renderAll();
+          ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+          ctx.fill();
         });
-      });
-
-      flipAngleBtn.addEventListener('click', () => {
-        const sel = state.annotations.find(a => a.id === state.selectedAnnotationId);
-        if (sel && sel.type === 'angle') {
-          saveUndoSnapshot();
-          sel.reflex = !sel.reflex;
-          updateInspectorSidebar();
-          renderAll();
-        }
-      });
-
-      deleteSelectedBtn.addEventListener('click', () => {
-        if (state.selectedAnnotationId) {
-          saveUndoSnapshot();
-          state.annotations = state.annotations.filter(a => a.id !== state.selectedAnnotationId);
-          state.selectedAnnotationId = null;
-          updateInspectorSidebar();
-          renderAll();
-        }
-      });
-
-      deselectAllBtn.addEventListener('click', () => {
-        state.selectedAnnotationId = null;
-        updateInspectorSidebar();
-        renderAll();
-      });
-
-      // =========================================================================
-      // 11. TOP TOOLBAR & PHOTO EXPORT
-      // =========================================================================
-      toolBtns.forEach((btn) => {
-        btn.addEventListener('click', () => {
-          toolBtns.forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          state.activeTool = btn.dataset.tool;
-          state.pendingAngle = null;
-          hudPromptText.textContent = TOOL_HINTS[state.activeTool] || '';
-          updateInspectorSidebar();
-          renderAll();
-        });
-      });
-
-      lineStyleBtn.addEventListener('click', () => {
-        state.lineStyle = state.lineStyle === 'solid' ? 'dashed' : 'solid';
-        lineStyleLabel.textContent = state.lineStyle === 'solid' ? 'Solid' : 'Dashed';
-        lineStyleIcon.className = state.lineStyle === 'solid'
-          ? 'ph-bold ph-minus text-lg text-white'
-          : 'ph-bold ph-dots-three text-lg text-[#FFD60A]';
-
-        const sel = state.annotations.find(a => a.id === state.selectedAnnotationId);
-        if (sel) {
-          sel.lineStyle = state.lineStyle;
-          updateInspectorSidebar();
-          renderAll();
-        }
-      });
-
-      colorSwatches.forEach((swatch) => {
-        swatch.addEventListener('click', () => {
-          colorSwatches.forEach(s => {
-            s.classList.remove('ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-zinc-900');
-            s.classList.add('opacity-75');
-          });
-          swatch.classList.add('ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-zinc-900');
-          swatch.classList.remove('opacity-75');
-          state.activeColor = swatch.dataset.color;
-
-          const sel = state.annotations.find(a => a.id === state.selectedAnnotationId);
-          if (sel) {
-            sel.color = state.activeColor;
-            updateInspectorSidebar();
-            renderAll();
-          }
-        });
-      });
-
-      undoBtn.addEventListener('click', () => {
-        if (state.pendingAngle) {
-          state.pendingAngle = null;
-          hudPromptText.textContent = TOOL_HINTS[state.activeTool];
-          updateInspectorSidebar();
-          renderAll();
-          return;
-        }
-        if (state.undoStack.length > 0) {
-          state.annotations = JSON.parse(state.undoStack.pop());
-          state.selectedAnnotationId = state.annotations.length
-            ? state.annotations[state.annotations.length - 1].id
-            : null;
-          updateInspectorSidebar();
-          renderAll();
-        }
-      });
-
-      clearAllBtn.addEventListener('click', () => {
-        if (state.annotations.length === 0 && !state.pendingAngle) return;
-        saveUndoSnapshot();
-        state.annotations = [];
-        state.pendingAngle = null;
-        state.selectedAnnotationId = null;
-        hudPromptText.textContent = TOOL_HINTS[state.activeTool];
-        updateInspectorSidebar();
-        renderAll();
-        showToast('Cleared All');
-      });
-
-      // Video loading
-      loadVideoBtn.addEventListener('click', () => videoFileInput.click());
-
-      function loadLocalVideoFile(file) {
-        if (!file) return;
-        if (state.videoObjectUrl) {
-          URL.revokeObjectURL(state.videoObjectUrl);
-        }
-        const url = URL.createObjectURL(file);
-        state.videoObjectUrl = url;
-        state.sourceMode = 'video';
-        state.isPlaying = false;
-        updatePlayPauseUI();
-
-        videoEl.src = url;
-        videoEl.classList.remove('hidden');
-        simCanvas.classList.add('hidden');
-
-        videoEl.addEventListener('loadedmetadata', function onMeta() {
-          videoEl.removeEventListener('loadedmetadata', onMeta);
-          state.duration = videoEl.duration || 1;
-          state.currentTime = 0;
-          videoEl.currentTime = 0;
-          videoEl.playbackRate = state.playbackRate;
-          syncStageAndCanvasDimensions();
-          showToast('Video Loaded');
-        });
-
-        videoEl.addEventListener('seeked', () => renderAll());
       }
+    }
 
-      videoFileInput.addEventListener('change', (e) => {
-        if (e.target.files && e.target.files[0]) {
-          loadLocalVideoFile(e.target.files[0]);
-        }
-      });
+    function clearCurrentMarkup() {
+      annotations = [];
+      tempPoints = [];
+      selectedAnnotation = null;
+      updateSidebarInfo();
+      render();
+    }
 
-      demoClipBtn.addEventListener('click', () => {
-        state.sourceMode = 'demo';
-        state.isPlaying = false;
-        videoEl.pause();
-        updatePlayPauseUI();
-        videoEl.classList.add('hidden');
-        simCanvas.classList.remove('hidden');
-        state.duration = 2.0;
-        state.currentTime = 0.52;
-        loadInitialDemoAngles();
-        syncStageAndCanvasDimensions();
-        showToast('Demo Clip Active');
-      });
-
-      // Drag and drop video file
-      window.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZoneOverlay.classList.remove('hidden');
-      });
-      window.addEventListener('dragleave', (e) => {
-        if (e.target === document.body || e.clientX <= 0 || e.clientY <= 0) {
-          dropZoneOverlay.classList.add('hidden');
-        }
-      });
-      window.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZoneOverlay.classList.add('hidden');
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-          loadLocalVideoFile(e.dataTransfer.files[0]);
-        }
-      });
-
-      // Save Annotated Photo PNG
-      exportPngBtn.addEventListener('click', () => {
-        const exportW = state.sourceMode === 'video' && videoEl.videoWidth ? videoEl.videoWidth : 1280;
-        const exportH = state.sourceMode === 'video' && videoEl.videoHeight ? videoEl.videoHeight : 720;
-
-        const outCanvas = document.createElement('canvas');
-        outCanvas.width = exportW;
-        outCanvas.height = exportH;
-        const outCtx = outCanvas.getContext('2d');
-
-        if (state.sourceMode === 'video') {
-          outCtx.drawImage(videoEl, 0, 0, exportW, exportH);
-        } else {
-          renderDemoClip(outCtx, exportW, exportH);
-        }
-
-        renderAnnotations(outCtx, exportW, exportH, true);
-
-        const dataUrl = outCanvas.toDataURL('image/png');
-        const link = document.createElement('a');
-        const curT = state.sourceMode === 'video' ? videoEl.currentTime : state.currentTime;
-        link.download = `Kinematics_${formatTime(curT).replace(':', '-')}.png`;
-        link.href = dataUrl;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        showToast('Saved Photo');
-      });
-
-      // =========================================================================
-      // 12. BOTTOM PLAYBACK & SCRUBBER CONTROLS
-      // =========================================================================
-      function updatePlayPauseUI() {
-        playPauseIcon.className = state.isPlaying
-          ? 'ph-fill ph-pause text-xl'
-          : 'ph-fill ph-play text-xl ml-0.5';
+    function updateSidebarInfo() {
+      if (selectedAnnotation && selectedAnnotation.type === 'angle') {
+        let val = calcAngleDeg(selectedAnnotation.p1, selectedAnnotation.vertex, selectedAnnotation.p3);
+        if (selectedAnnotation.isReflex) val = 360 - val;
+        document.getElementById('statAngle').innerText = `${val.toFixed(1)}°`;
+        document.getElementById('statType').innerText = selectedAnnotation.isReflex ? 'Reflex Angle' : 'Interior Angle';
+        document.getElementById('customLabelInput').value = selectedAnnotation.label;
+      } else {
+        document.getElementById('statAngle').innerText = '--°';
+        document.getElementById('statType').innerText = 'Select or draw an angle';
+        document.getElementById('customLabelInput').value = '';
       }
+    }
 
-      function togglePlayPause() {
-        state.isPlaying = !state.isPlaying;
-        if (state.sourceMode === 'video') {
-          if (state.isPlaying) {
-            videoEl.playbackRate = state.playbackRate;
-            videoEl.play().catch(() => {
-              state.isPlaying = false;
-              updatePlayPauseUI();
-            });
-          } else {
-            videoEl.pause();
-          }
-        }
-        updatePlayPauseUI();
+    function applyPresetName(name) {
+      if (selectedAnnotation) {
+        selectedAnnotation.label = name;
+        updateSidebarInfo();
+        render();
       }
+    }
 
-      playPauseBtn.addEventListener('click', togglePlayPause);
-
-      function stepFrames(delta) {
-        if (state.isPlaying) {
-          state.isPlaying = false;
-          if (state.sourceMode === 'video') videoEl.pause();
-          updatePlayPauseUI();
-        }
-
-        const step = state.stepCadence;
-        if (state.sourceMode === 'video') {
-          const dur = videoEl.duration || 1;
-          videoEl.currentTime = clamp(videoEl.currentTime + delta * step, 0, dur);
-          state.currentTime = videoEl.currentTime;
-        } else {
-          let nextT = state.currentTime + delta * step;
-          while (nextT < 0) nextT += state.duration;
-          state.currentTime = nextT % state.duration;
-        }
-        renderAll();
+    function updateCurrentLabel(txt) {
+      if (selectedAnnotation) {
+        selectedAnnotation.label = txt;
+        render();
       }
+    }
 
-      stepBackBtn.addEventListener('click', () => stepFrames(-1));
-      stepForwardBtn.addEventListener('click', () => stepFrames(1));
-
-      timelineScrubber.addEventListener('pointerdown', () => {
-        timelineScrubber._isScrubbing = true;
-        if (state.isPlaying) {
-          state.isPlaying = false;
-          if (state.sourceMode === 'video') videoEl.pause();
-          updatePlayPauseUI();
-        }
-      });
-
-      timelineScrubber.addEventListener('input', () => {
-        const ratio = parseFloat(timelineScrubber.value) / 1000;
-        if (state.sourceMode === 'video') {
-          const dur = videoEl.duration || 1;
-          videoEl.currentTime = ratio * dur;
-          state.currentTime = videoEl.currentTime;
-        } else {
-          state.currentTime = ratio * state.duration;
-        }
-        renderAll();
-      });
-
-      window.addEventListener('pointerup', () => {
-        timelineScrubber._isScrubbing = false;
-      });
-
-      speedBtns.forEach((btn) => {
-        btn.addEventListener('click', () => {
-          speedBtns.forEach(b => {
-            b.className = 'speed-btn min-h-[34px] px-2.5 rounded-full text-xs font-medium text-zinc-400 hover:text-white transition';
-          });
-          btn.className = 'speed-btn min-h-[34px] px-2.5 rounded-full text-xs font-medium bg-white/20 text-white shadow-sm transition';
-          state.playbackRate = parseFloat(btn.dataset.speed);
-          if (state.sourceMode === 'video') {
-            videoEl.playbackRate = state.playbackRate;
-          }
-        });
-      });
-
-      // =========================================================================
-      // 13. INITIAL DEMO ANGLES & STARTUP
-      // =========================================================================
-      function loadInitialDemoAngles() {
-        const j = computeDemoPose(state.currentTime);
-        state.annotations = [
-          {
-            id: uid(),
-            type: 'angle',
-            label: 'Knee',
-            color: '#FFD60A',
-            strokeWidth: 3,
-            lineStyle: 'solid',
-            p1: { x: j.hip.x, y: j.hip.y },
-            vertex: { x: j.knee.x, y: j.knee.y },
-            p2: { x: j.ankle.x, y: j.ankle.y },
-            reflex: false
-          },
-          {
-            id: uid(),
-            type: 'angle',
-            label: 'Hip',
-            color: '#0A84FF',
-            strokeWidth: 3,
-            lineStyle: 'solid',
-            p1: { x: j.shoulder.x, y: j.shoulder.y },
-            vertex: { x: j.hip.x, y: j.hip.y },
-            p2: { x: j.knee.x, y: j.knee.y },
-            reflex: false
-          }
-        ];
-        state.selectedAnnotationId = state.annotations[0].id;
-        updateInspectorSidebar();
+    function flipActiveAngle() {
+      if (selectedAnnotation && selectedAnnotation.type === 'angle') {
+        selectedAnnotation.isReflex = !selectedAnnotation.isReflex;
+        updateSidebarInfo();
+        render();
       }
+    }
 
-      window.addEventListener('load', () => {
-        loadInitialDemoAngles();
-        syncStageAndCanvasDimensions();
-        requestAnimationFrame(animationTick);
-      });
-    })();
+    // Initialize
+    resizeCanvas();
   </script>
 </body>
 </html>
