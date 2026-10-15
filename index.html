@@ -3,17 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>KineLab 2D</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>KineLab</title>
   <style>
     :root {
-      --bg-dark: #000000;
-      --card-bg: rgba(28, 28, 30, 0.85);
-      --card-border: rgba(255, 255, 255, 0.12);
-      --accent-blue: #0A84FF;
-      --accent-green: #30D158;
-      --accent-red: #FF453A;
-      --text-main: #FFFFFF;
-      --text-muted: #8E8E93;
+      --bg-pure: #000000;
+      --glass-bg: rgba(28, 28, 30, 0.86);
+      --panel-bg: rgba(24, 24, 26, 0.96);
+      --card-bg: rgba(44, 44, 46, 0.65);
+      --card-hover: rgba(58, 58, 60, 0.8);
+      --input-bg: rgba(118, 118, 128, 0.24);
+      --border-subtle: rgba(255, 255, 255, 0.11);
+      --border-strong: rgba(255, 255, 255, 0.2);
+      --ios-blue: #0A84FF;
+      --ios-green: #30D158;
+      --ios-orange: #FF9F0A;
+      --ios-red: #FF453A;
+      --ios-purple: #BF5AF2;
+      --ios-cyan: #64D2FF;
+      --text-primary: #FFFFFF;
+      --text-secondary: #98989F;
+      --text-muted: #636366;
     }
 
     * {
@@ -23,56 +34,99 @@
       -webkit-user-select: none;
       user-select: none;
       -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-pure);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
 
     body {
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      overflow: hidden;
-      width: 100vw;
-      height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
-    /* Top Toolbar */
-    header {
-      height: 52px;
-      background: var(--card-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--card-border);
+    input[type="text"] {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    /* Top Navigation Bar */
+    .top-bar {
+      height: 60px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border-subtle);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 16px;
-      z-index: 30;
-      gap: 8px;
+      padding: 0 14px;
+      gap: 10px;
+      z-index: 40;
+      flex-shrink: 0;
     }
 
-    .brand-title {
-      font-weight: 600;
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .app-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #0A84FF 0%, #5E5CE6 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(10, 132, 255, 0.35);
+    }
+
+    .app-title {
       font-size: 16px;
-      letter-spacing: -0.2px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
     }
 
-    .tool-group {
+    /* Center Markup Toolbar */
+    .toolbar-scroll {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       overflow-x: auto;
+      scrollbar-width: none;
+      padding: 4px 2px;
+    }
+    .toolbar-scroll::-webkit-scrollbar {
+      display: none;
     }
 
-    .btn {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid var(--card-border);
-      color: var(--text-main);
-      padding: 6px 12px;
+    .segmented-pill {
+      display: flex;
+      align-items: center;
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 11px;
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .tool-btn {
+      height: 38px;
+      padding: 0 11px;
       border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
       font-size: 13px;
       font-weight: 500;
       display: inline-flex;
@@ -80,52 +134,122 @@
       justify-content: center;
       gap: 6px;
       cursor: pointer;
-      min-height: 36px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
       touch-action: manipulation;
     }
 
-    .btn:active {
-      background: rgba(255, 255, 255, 0.2);
+    .tool-btn svg {
+      width: 17px;
+      height: 17px;
+      flex-shrink: 0;
     }
 
-    .btn.active {
-      background: var(--accent-blue);
-      border-color: var(--accent-blue);
+    .tool-btn:active {
+      transform: scale(0.96);
+    }
+
+    .tool-btn.active {
+      background: var(--ios-blue);
       color: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(10, 132, 255, 0.4);
     }
 
-    .btn-danger {
-      color: var(--accent-red);
-      background: rgba(255, 69, 58, 0.12);
-      border-color: rgba(255, 69, 58, 0.3);
+    .action-btn {
+      height: 40px;
+      padding: 0 13px;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      background: var(--card-bg);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      white-space: nowrap;
+      touch-action: manipulation;
     }
 
-    /* Main Workspace */
-    #workspace {
+    .action-btn svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .action-btn:active {
+      background: var(--card-hover);
+    }
+
+    .action-btn.primary {
+      background: rgba(10, 132, 255, 0.18);
+      border-color: rgba(10, 132, 255, 0.45);
+      color: #409CFF;
+    }
+
+    .action-btn.danger {
+      background: rgba(255, 69, 58, 0.15);
+      border-color: rgba(255, 69, 58, 0.35);
+      color: var(--ios-red);
+    }
+
+    .action-btn.active-toggle {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: var(--border-strong);
+    }
+
+    /* Color Swatches */
+    .color-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 11px;
+      padding: 5px 8px;
+    }
+
+    .swatch {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    .swatch.active {
+      border-color: #FFFFFF;
+      transform: scale(1.15);
+    }
+
+    /* Main Workspace & Stage */
+    .workspace {
       flex: 1;
       display: flex;
       position: relative;
       overflow: hidden;
+      background: var(--bg-pure);
     }
 
-    #stageContainer {
+    .stage-container {
       flex: 1;
       position: relative;
-      background: #000000;
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
+      background: #000000;
     }
 
     #videoPlayer {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      pointer-events: none;
+      display: none;
     }
 
-    #annotCanvas {
+    #mainCanvas {
       position: absolute;
       top: 0;
       left: 0;
@@ -133,50 +257,90 @@
       height: 100%;
       touch-action: none;
       z-index: 10;
+      cursor: crosshair;
     }
 
-    /* Loupe */
-    #magnifierLoupe {
+    /* Helper Prompt Pill */
+    .prompt-banner {
       position: absolute;
-      top: 12px;
-      right: 12px;
-      width: 110px;
-      height: 110px;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(28, 28, 30, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      padding: 7px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 25;
+      pointer-events: none;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+      transition: opacity 0.2s ease;
+    }
+
+    .prompt-dot {
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      border: 2px solid #FFFFFF;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+      background: var(--ios-blue);
+    }
+
+    /* Precision Magnifier Loupe */
+    #loupeContainer {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      width: 124px;
+      height: 124px;
+      border-radius: 50%;
+      border: 2.5px solid rgba(255, 255, 255, 0.92);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.75);
       overflow: hidden;
       pointer-events: none;
+      z-index: 30;
       display: none;
-      z-index: 25;
       background: #000;
+    }
+
+    #loupeContainer.right-side {
+      left: auto;
+      right: 16px;
     }
 
     #loupeCanvas {
       width: 100%;
       height: 100%;
+      display: block;
     }
 
-    /* Sidebar */
-    #inspectorSidebar {
-      width: 280px;
-      background: var(--card-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-left: 1px solid var(--card-border);
+    /* Collapsible Right Inspector Sidebar */
+    .inspector-sidebar {
+      width: 310px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-left: 1px solid var(--border-subtle);
       display: flex;
       flex-direction: column;
-      z-index: 20;
-      transition: margin-right 0.2s ease;
+      z-index: 35;
+      flex-shrink: 0;
+      transition: margin-right 0.24s cubic-bezier(0.25, 1, 0.5, 1);
     }
 
-    #inspectorSidebar.collapsed {
-      margin-right: -280px;
+    .inspector-sidebar.collapsed {
+      margin-right: -310px;
     }
 
     .sidebar-header {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--card-border);
+      height: 50px;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--border-subtle);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -184,493 +348,1485 @@
       font-weight: 600;
     }
 
-    .sidebar-body {
-      padding: 14px;
-      overflow-y: auto;
+    .icon-close-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: none;
+      background: var(--input-bg);
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .sidebar-content {
       flex: 1;
+      overflow-y: auto;
+      padding: 14px;
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
 
-    .stat-card {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
-      padding: 12px;
-      text-align: center;
+    .inspector-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
-    .stat-value {
-      font-size: 28px;
+    .readout-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+
+    .readout-value {
+      font-size: 32px;
       font-weight: 700;
-      color: var(--accent-green);
-      margin: 4px 0;
+      letter-spacing: -0.8px;
+      font-variant-numeric: tabular-nums;
+      color: var(--ios-green);
     }
 
-    .chip-grid {
+    .readout-badge {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-secondary);
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .preset-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 6px;
     }
 
-    .chip {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--card-border);
-      border-radius: 6px;
-      padding: 6px 8px;
+    .preset-chip {
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
       font-size: 12px;
-      color: var(--text-main);
-      text-align: center;
+      font-weight: 500;
       cursor: pointer;
+      transition: all 0.12s ease;
+      touch-action: manipulation;
     }
 
-    .chip:active {
-      background: var(--accent-blue);
+    .preset-chip:active, .preset-chip.active {
+      background: var(--ios-blue);
+      border-color: var(--ios-blue);
+      color: #FFFFFF;
     }
 
-    input[type="text"] {
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .text-input {
       width: 100%;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid var(--card-border);
-      border-radius: 6px;
-      padding: 8px 10px;
-      color: #FFF;
+      height: 38px;
+      border-radius: 9px;
+      border: 1px solid var(--border-subtle);
+      background: var(--input-bg);
+      color: var(--text-primary);
+      padding: 0 32px 0 11px;
       font-size: 13px;
       outline: none;
     }
 
-    /* Bottom Scrubber Toolbar */
-    footer {
-      height: 64px;
+    .text-input:focus {
+      border-color: var(--ios-blue);
+    }
+
+    .input-clear {
+      position: absolute;
+      right: 8px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255, 255, 255, 0.2);
+      color: #FFF;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .card-actions {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    /* Measurements List */
+    .measure-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .measure-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: 10px;
       background: var(--card-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-top: 1px solid var(--card-border);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+
+    .measure-item.selected {
+      border-color: var(--ios-blue);
+      background: rgba(10, 132, 255, 0.14);
+    }
+
+    .measure-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .measure-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .measure-name {
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .measure-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .measure-val {
+      font-size: 13px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-secondary);
+    }
+
+    .trash-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .trash-btn:active {
+      background: rgba(255, 69, 58, 0.2);
+      color: var(--ios-red);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 22px 12px;
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.5;
+      border: 1px dashed var(--border-subtle);
+      border-radius: 12px;
+    }
+
+    /* Bottom Video Scrubber Bar */
+    .bottom-bar {
+      height: 68px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-top: 1px solid var(--border-subtle);
       display: flex;
       align-items: center;
       padding: 0 16px;
       gap: 12px;
-      z-index: 30;
+      z-index: 40;
+      flex-shrink: 0;
     }
 
-    .timeline-slider {
+    .transport-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .play-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: none;
+      background: var(--ios-blue);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(10, 132, 255, 0.4);
+      touch-action: manipulation;
+    }
+
+    .play-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .step-btn {
+      height: 40px;
+      padding: 0 11px;
+      border-radius: 9px;
+      border: 1px solid var(--border-subtle);
+      background: var(--card-bg);
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .step-btn:active {
+      background: var(--card-hover);
+    }
+
+    .scrubber-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 120px;
+    }
+
+    .scrubber-slider {
       flex: 1;
       -webkit-appearance: none;
+      appearance: none;
       height: 6px;
-      border-radius: 3px;
+      border-radius: 999px;
       background: rgba(255, 255, 255, 0.2);
       outline: none;
-    }
-
-    .timeline-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: #FFFFFF;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
       cursor: pointer;
     }
 
-    .time-badge {
-      font-variant-numeric: tabular-nums;
-      font-size: 13px;
-      color: var(--text-muted);
-      min-width: 80px;
+    .scrubber-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+      border: 2px solid var(--ios-blue);
+      cursor: pointer;
+    }
+
+    .time-readout {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      line-height: 1.25;
+    }
+
+    .speed-pills {
+      display: flex;
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9px;
+      padding: 2px;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+
+    .speed-btn {
+      height: 34px;
+      padding: 0 9px;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .speed-btn.active {
+      background: rgba(255, 255, 255, 0.16);
+      color: #FFFFFF;
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Navigation & Tool Selection -->
-  <header>
-    <div class="brand-title">
-      <span>📐 KineLab</span>
+  <!-- TOP NAVIGATION & MARKUP BAR -->
+  <header class="top-bar">
+    <div class="brand-group">
+      <div class="app-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 22h20"/>
+          <path d="M6 18L15 4l5 14"/>
+          <path d="M10.5 11a4.5 4.5 0 0 1 6 3.5"/>
+        </svg>
+      </div>
+      <span class="app-title">KineLab</span>
     </div>
 
-    <div class="tool-group">
-      <button id="toolAngle" class="btn active" onclick="setTool('angle')">Angle (3pt)</button>
-      <button id="toolPlumb" class="btn" onclick="setTool('plumb')">Plumb Line</button>
-      <button id="toolLine" class="btn" onclick="setTool('line')">Line</button>
-      <button id="toolArrow" class="btn" onclick="setTool('arrow')">Vector</button>
-      <button id="toolStyle" class="btn" onclick="toggleLineStyle()">Solid</button>
-      <button id="btnClear" class="btn btn-danger" onclick="clearCurrentMarkup()">Clear</button>
+    <!-- Center Tools -->
+    <div class="toolbar-scroll">
+      <div class="segmented-pill">
+        <button class="tool-btn" data-tool="select" onclick="selectTool('select')" title="Select & Adjust">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="m13 13 6 6"/></svg>
+          <span>Move</span>
+        </button>
+        <button class="tool-btn active" data-tool="angle" onclick="selectTool('angle')" title="3-Point Joint Angle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 4 5 12l14 8"/><path d="M11 8.5a5.5 5.5 0 0 1 0 7"/><circle cx="5" cy="12" r="2"/></svg>
+          <span>Angle</span>
+        </button>
+        <button class="tool-btn" data-tool="line" onclick="selectTool('line')" title="Straight Reference Line">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="19" x2="19" y2="5"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="5" r="2"/></svg>
+          <span>Line</span>
+        </button>
+        <button class="tool-btn" data-tool="plumb" onclick="selectTool('plumb')" title="Vertical / Horizontal Plumb Line">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="3" x2="12" y2="21"/><path d="M8 21h8"/><circle cx="12" cy="7" r="2"/></svg>
+          <span>Plumb</span>
+        </button>
+        <button class="tool-btn" data-tool="arrow" onclick="selectTool('arrow')" title="Directional Vector Arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="19" x2="19" y2="5"/><polyline points="10 5 19 5 19 14"/></svg>
+          <span>Vector</span>
+        </button>
+        <button class="tool-btn" data-tool="circle" onclick="selectTool('circle')" title="Circle Marker">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="1.5"/></svg>
+          <span>Marker</span>
+        </button>
+        <button class="tool-btn" data-tool="pen" onclick="selectTool('pen')" title="Freehand Trace">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>
+          <span>Trace</span>
+        </button>
+      </div>
+
+      <!-- Solid / Dashed Toggle -->
+      <button id="dashToggleBtn" class="action-btn" onclick="toggleDashedMode()" title="Toggle Solid or Dashed Line">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="12" x2="20" y2="12" stroke-dasharray="4 4"/></svg>
+        <span id="dashToggleText">Solid</span>
+      </button>
+
+      <!-- Color Swatches -->
+      <div class="color-group">
+        <button class="swatch active" style="background:#30D158" onclick="selectColor('#30D158', this)"></button>
+        <button class="swatch" style="background:#0A84FF" onclick="selectColor('#0A84FF', this)"></button>
+        <button class="swatch" style="background:#FF9F0A" onclick="selectColor('#FF9F0A', this)"></button>
+        <button class="swatch" style="background:#FF453A" onclick="selectColor('#FF453A', this)"></button>
+        <button class="swatch" style="background:#BF5AF2" onclick="selectColor('#BF5AF2', this)"></button>
+      </div>
+
+      <button class="action-btn" onclick="undoLast()" title="Undo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+      </button>
+      <button class="action-btn danger" onclick="clearAllAnnotations()" title="Clear All">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </button>
     </div>
 
-    <div class="tool-group">
-      <input type="file" id="videoUpload" accept="video/mp4,video/quicktime" style="display:none" onchange="loadVideoFile(event)">
-      <button class="btn" onclick="document.getElementById('videoUpload').click()">Open Video</button>
-      <button id="sidebarToggle" class="btn" onclick="toggleSidebar()">Inspector</button>
+    <!-- Right Actions: Load Video & Inspector Toggle -->
+    <div class="brand-group">
+      <input type="file" id="videoFileInput" accept="video/mp4,video/quicktime,video/webm,video/*" style="display:none" onchange="handleVideoUpload(event)">
+      <button class="action-btn primary" onclick="document.getElementById('videoFileInput').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>Open Video</span>
+      </button>
+      <button id="sidebarToggleBtn" class="action-btn active-toggle" onclick="toggleSidebar()" title="Toggle Inspector Sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+      </button>
     </div>
   </header>
 
-  <!-- Canvas & Video Viewport -->
-  <main id="workspace">
-    <div id="stageContainer">
-      <video id="videoPlayer" playsinline muted preload="auto"></video>
-      <canvas id="annotCanvas"></canvas>
-      <div id="magnifierLoupe"><canvas id="loupeCanvas"></canvas></div>
+  <!-- MAIN WORKSPACE -->
+  <div class="workspace">
+    <!-- Video & Interactive Canvas Stage -->
+    <div id="stageContainer" class="stage-container">
+      <video id="videoPlayer" playsinline webkit-playsinline muted preload="auto"></video>
+      <canvas id="mainCanvas"></canvas>
+
+      <!-- Contextual Instruction Pill -->
+      <div id="promptBanner" class="prompt-banner">
+        <span class="prompt-dot"></span>
+        <span id="promptText">Tap 1st limb point, then joint center (vertex), then 2nd limb point</span>
+      </div>
+
+      <!-- Always-On Precision Magnifier Loupe -->
+      <div id="loupeContainer">
+        <canvas id="loupeCanvas" width="124" height="124"></canvas>
+      </div>
     </div>
 
-    <!-- Right-Side Anatomical Inspector -->
-    <aside id="inspectorSidebar">
+    <!-- Collapsible Right-Hand Inspector Sidebar -->
+    <aside id="inspectorSidebar" class="inspector-sidebar">
       <div class="sidebar-header">
-        <span>Measurement Details</span>
-        <button class="btn" style="padding: 2px 8px; min-height: 24px;" onclick="toggleSidebar()">✕</button>
+        <span>Angle & Markup Inspector</span>
+        <button class="icon-close-btn" onclick="toggleSidebar()" title="Hide Sidebar">✕</button>
       </div>
-      <div class="sidebar-body">
-        <div class="stat-card">
-          <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Angle Measurement</div>
-          <div id="statAngle" class="stat-value">--°</div>
-          <div id="statType" style="font-size: 11px; color: var(--text-muted);">Select or draw an angle</div>
-        </div>
 
-        <div>
-          <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Joint Preset</label>
-          <div class="chip-grid">
-            <button class="chip" onclick="applyPresetName('Hip')">Hip</button>
-            <button class="chip" onclick="applyPresetName('Knee')">Knee</button>
-            <button class="chip" onclick="applyPresetName('Ankle')">Ankle</button>
-            <button class="chip" onclick="applyPresetName('Trunk')">Trunk</button>
-            <button class="chip" onclick="applyPresetName('Shoulder')">Shoulder</button>
-            <button class="chip" onclick="applyPresetName('Elbow')">Elbow</button>
+      <div class="sidebar-content">
+        <!-- Selected Item Inspector Card -->
+        <div class="inspector-card">
+          <div class="readout-header">
+            <div id="inspectorValue" class="readout-value">--°</div>
+            <span id="inspectorBadge" class="readout-badge">No Selection</span>
+          </div>
+
+          <div>
+            <div class="section-label">Quick Joint Name</div>
+            <div class="preset-grid">
+              <button class="preset-chip" onclick="setQuickName('Hip')">Hip</button>
+              <button class="preset-chip" onclick="setQuickName('Knee')">Knee</button>
+              <button class="preset-chip" onclick="setQuickName('Ankle')">Ankle</button>
+              <button class="preset-chip" onclick="setQuickName('Trunk')">Trunk</button>
+              <button class="preset-chip" onclick="setQuickName('Shoulder')">Shoulder</button>
+              <button class="preset-chip" onclick="setQuickName('Elbow')">Elbow</button>
+              <button class="preset-chip" onclick="setQuickName('Neck')">Neck</button>
+              <button class="preset-chip" onclick="setQuickName('Wrist')">Wrist</button>
+            </div>
+          </div>
+
+          <div>
+            <div class="section-label">Custom Label</div>
+            <div class="input-wrap">
+              <input type="text" id="labelInput" class="text-input" placeholder="e.g. Right Knee" oninput="onCustomLabelInput(this.value)">
+              <button class="input-clear" onclick="onCustomLabelInput('')">✕</button>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <button class="action-btn" onclick="flipSelectedAngle()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2.1l4 4-4 4"/><path d="M3 12.2v-2a4 4 0 0 1 4-4h12.8M7 21.9l-4-4 4-4"/><path d="M21 11.8v2a4 4 0 0 1-4 4H4.2"/></svg>
+              <span>Flip 180°/360°</span>
+            </button>
+            <button class="action-btn danger" onclick="deleteSelectedAnnotation()" title="Delete Selected">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+            </button>
           </div>
         </div>
 
+        <!-- Measurements List -->
         <div>
-          <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Custom Name</label>
-          <input type="text" id="customLabelInput" placeholder="e.g. Left Knee Flexion" oninput="updateCurrentLabel(this.value)">
+          <div class="section-label">Measurements on Frame</div>
+          <div id="measurementsList" class="measure-list"></div>
         </div>
-
-        <button class="btn" onclick="flipActiveAngle()">Flip 180° / 360°</button>
       </div>
     </aside>
-  </main>
+  </div>
 
-  <!-- Bottom Timeline & Frame Controls -->
-  <footer>
-    <button id="playBtn" class="btn" onclick="togglePlay()">Play</button>
-    <button class="btn" onclick="stepFrame(-1)">-1F</button>
-    <button class="btn" onclick="stepFrame(1)">+1F</button>
+  <!-- BOTTOM PLAYBACK & SCRUBBER BAR -->
+  <footer class="bottom-bar">
+    <div class="transport-group">
+      <button id="playPauseBtn" class="play-btn" onclick="togglePlayback()" title="Play / Pause">
+        <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+      </button>
+      <button class="step-btn" onclick="stepFrames(-5)" title="Back 5 Frames">-5F</button>
+      <button class="step-btn" onclick="stepFrames(-1)" title="Back 1 Frame">-1F</button>
+      <button class="step-btn" onclick="stepFrames(1)" title="Forward 1 Frame">+1F</button>
+      <button class="step-btn" onclick="stepFrames(5)" title="Forward 5 Frames">+5F</button>
+    </div>
 
-    <input type="range" id="timeline" class="timeline-slider" min="0" max="100" value="0" step="0.01" oninput="onScrub(this.value)">
-    <div id="timeDisplay" class="time-badge">00:00.00</div>
+    <div class="scrubber-wrap">
+      <input type="range" id="timelineSlider" class="scrubber-slider" min="0" max="1000" value="0" step="1" oninput="handleScrub(this.value)">
+      <div class="time-readout">
+        <span id="timeText">00:00.00</span>
+        <span id="frameText" style="color:var(--text-muted)">Frame 0</span>
+      </div>
+    </div>
 
-    <button class="btn" onclick="setSpeed(0.25)">0.25x</button>
-    <button class="btn" onclick="setSpeed(0.5)">0.5x</button>
-    <button class="btn" onclick="setSpeed(1.0)">1.0x</button>
+    <div class="speed-pills">
+      <button class="speed-btn" onclick="setPlaybackRate(0.1, this)">0.1x</button>
+      <button class="speed-btn" onclick="setPlaybackRate(0.25, this)">0.25x</button>
+      <button class="speed-btn" onclick="setPlaybackRate(0.5, this)">0.5x</button>
+      <button class="speed-btn active" onclick="setPlaybackRate(1.0, this)">1x</button>
+    </div>
   </footer>
 
   <script>
     const video = document.getElementById('videoPlayer');
-    const canvas = document.getElementById('annotCanvas');
+    const canvas = document.getElementById('mainCanvas');
     const ctx = canvas.getContext('2d');
-    const loupe = document.getElementById('magnifierLoupe');
+    const loupeContainer = document.getElementById('loupeContainer');
     const loupeCanvas = document.getElementById('loupeCanvas');
     const loupeCtx = loupeCanvas.getContext('2d');
+    const stageContainer = document.getElementById('stageContainer');
     const sidebar = document.getElementById('inspectorSidebar');
 
-    let currentTool = 'angle';
-    let lineDashed = false;
+    // State
+    let hasLoadedVideo = false;
+    let demoTime = 0.35; // Initial pose in demo mode
+    let demoPlaying = false;
+    let demoSpeed = 1.0;
+    let lastRafTime = performance.now();
+
+    let activeTool = 'angle';
+    let activeColor = '#30D158';
+    let isDashed = false;
+
     let annotations = [];
-    let tempPoints = [];
-    let selectedAnnotation = null;
-    let isDragging = false;
-    let activePoint = null;
+    let selectedId = null;
+    let pendingAnglePts = []; // [p1, vertex] while building a 3-point angle
+    let cursorPos = null;
 
-    function resizeCanvas() {
-      const rect = document.getElementById('stageContainer').getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
-      loupeCanvas.width = 110;
-      loupeCanvas.height = 110;
-      render();
+    // Drag interaction state
+    let dragState = null; // { type: 'handle'|'create'|'pen'|'move-all', item, handleKey, startPt }
+
+    const STEP_DT = 1 / 60; // Smooth 60Hz single-frame step
+
+    // Cross-browser rounded rect helper for older iPadOS Safari
+    function fillRoundRect(context, x, y, w, h, r) {
+      context.beginPath();
+      context.moveTo(x + r, y);
+      context.lineTo(x + w - r, y);
+      context.quadraticCurveTo(x + w, y, x + w, y + r);
+      context.lineTo(x + w, y + h - r);
+      context.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      context.lineTo(x + r, y + h);
+      context.quadraticCurveTo(x, y + h, x, y + h - r);
+      context.lineTo(x, y + r);
+      context.quadraticCurveTo(x, y, x + r, y);
+      context.closePath();
     }
-    window.addEventListener('resize', resizeCanvas);
-    new ResizeObserver(resizeCanvas).observe(document.getElementById('stageContainer'));
 
-    function setTool(tool) {
-      currentTool = tool;
-      tempPoints = [];
-      document.querySelectorAll('.tool-group .btn').forEach(b => b.classList.remove('active'));
-      const btn = document.getElementById('tool' + tool.charAt(0).toUpperCase() + tool.slice(1));
-      if (btn) btn.classList.add('active');
-      render();
+    // Resize handling
+    function resizeStage() {
+      const rect = stageContainer.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      renderFrame();
+    }
+    window.addEventListener('resize', resizeStage);
+    if (window.ResizeObserver) {
+      new ResizeObserver(resizeStage).observe(stageContainer);
     }
 
-    function toggleLineStyle() {
-      lineDashed = !lineDashed;
-      document.getElementById('toolStyle').innerText = lineDashed ? 'Dashed' : 'Solid';
+    // Compute letterboxed video rectangle inside stage
+    function getVideoBox() {
+      const sw = stageContainer.clientWidth || 800;
+      const sh = stageContainer.clientHeight || 500;
+      const vw = hasLoadedVideo && video.videoWidth ? video.videoWidth : 1280;
+      const vh = hasLoadedVideo && video.videoHeight ? video.videoHeight : 720;
+      const scale = Math.min(sw / vw, sh / vh);
+      const w = vw * scale;
+      const h = vh * scale;
+      return {
+        x: (sw - w) / 2,
+        y: (sh - h) / 2,
+        w,
+        h
+      };
+    }
+
+    // Normalized (0..1) <-> Canvas pixel coordinates so resizing sidebar never shifts landmarks
+    function normToPixel(pt, box) {
+      return {
+        x: box.x + pt.nx * box.w,
+        y: box.y + pt.ny * box.h
+      };
+    }
+
+    function pixelToNorm(x, y, box) {
+      return {
+        nx: Math.max(0, Math.min(1, (x - box.x) / (box.w || 1))),
+        ny: Math.max(0, Math.min(1, (y - box.y) / (box.h || 1)))
+      };
+    }
+
+    // Tool & UI Controls
+    function selectTool(tool) {
+      activeTool = tool;
+      pendingAnglePts = [];
+      document.querySelectorAll('.tool-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tool === tool);
+      });
+      updatePromptBanner();
+      renderFrame();
+    }
+
+    function updatePromptBanner() {
+      const textEl = document.getElementById('promptText');
+      if (activeTool === 'angle') {
+        if (pendingAnglePts.length === 0) textEl.textContent = 'Angle: Tap 1st limb landmark';
+        else if (pendingAnglePts.length === 1) textEl.textContent = 'Angle: Tap Joint Center (Vertex)';
+        else if (pendingAnglePts.length === 2) textEl.textContent = 'Angle: Tap 2nd limb landmark';
+      } else if (activeTool === 'line') {
+        textEl.textContent = 'Line: Touch and drag across two landmarks';
+      } else if (activeTool === 'plumb') {
+        textEl.textContent = 'Plumb Line: Drag vertically or horizontally to snap reference';
+      } else if (activeTool === 'arrow') {
+        textEl.textContent = 'Vector: Touch and drag in the direction of force/motion';
+      } else if (activeTool === 'circle') {
+        textEl.textContent = 'Marker: Tap or drag to place landmark circle';
+      } else if (activeTool === 'pen') {
+        textEl.textContent = 'Trace: Draw freehand path with finger or Apple Pencil';
+      } else {
+        textEl.textContent = 'Move: Drag any point handle or tap a measurement to inspect';
+      }
+    }
+
+    function selectColor(color, btnEl) {
+      activeColor = color;
+      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+      const sel = getSelectedAnnotation();
+      if (sel) {
+        sel.color = color;
+        syncInspectorUI();
+        renderFrame();
+      }
+    }
+
+    function toggleDashedMode() {
+      isDashed = !isDashed;
+      const btn = document.getElementById('dashToggleBtn');
+      const txt = document.getElementById('dashToggleText');
+      txt.textContent = isDashed ? 'Dashed' : 'Solid';
+      btn.classList.toggle('active-toggle', isDashed);
+      const sel = getSelectedAnnotation();
+      if (sel) {
+        sel.dashed = isDashed;
+        renderFrame();
+      }
     }
 
     function toggleSidebar() {
       sidebar.classList.toggle('collapsed');
-      setTimeout(resizeCanvas, 220);
+      document.getElementById('sidebarToggleBtn').classList.toggle('active-toggle', !sidebar.classList.contains('collapsed'));
+      setTimeout(resizeStage, 250);
     }
 
-    function loadVideoFile(e) {
-      const file = e.target.files[0];
-      if (file) {
-        video.src = URL.createObjectURL(file);
-        video.load();
-        video.onloadedmetadata = () => {
-          resizeCanvas();
-          updateTimeline();
-        };
-      }
-    }
-
-    function togglePlay() {
-      if (video.paused) {
-        video.play();
-        document.getElementById('playBtn').innerText = 'Pause';
-      } else {
+    // Video upload & playback
+    function handleVideoUpload(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      demoPlaying = false;
+      const url = URL.createObjectURL(file);
+      video.src = url;
+      video.load();
+      video.onloadeddata = () => {
+        hasLoadedVideo = true;
+        video.currentTime = 0;
         video.pause();
-        document.getElementById('playBtn').innerText = 'Play';
+        updatePlayIcon();
+        updateScrubberUI();
+        resizeStage();
+      };
+    }
+
+    function togglePlayback() {
+      if (hasLoadedVideo) {
+        if (video.paused || video.ended) {
+          video.play();
+        } else {
+          video.pause();
+        }
+        updatePlayIcon();
+      } else {
+        demoPlaying = !demoPlaying;
+        updatePlayIcon();
       }
     }
 
-    function stepFrame(frames) {
-      video.pause();
-      document.getElementById('playBtn').innerText = 'Play';
-      video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + (frames * 0.0333)));
-      updateTimeline();
-    }
-
-    function setSpeed(rate) {
-      video.playbackRate = rate;
-    }
-
-    function onScrub(val) {
-      if (video.duration) {
-        video.currentTime = (val / 100) * video.duration;
-        updateTimeline();
+    function updatePlayIcon() {
+      const isPlaying = hasLoadedVideo ? !video.paused : demoPlaying;
+      const icon = document.getElementById('playIcon');
+      if (isPlaying) {
+        icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+      } else {
+        icon.innerHTML = '<polygon points="6 4 20 12 6 20 6 4"/>';
       }
     }
 
-    video.addEventListener('timeupdate', () => {
-      if (!video.paused) updateTimeline();
-    });
-
-    function updateTimeline() {
-      if (!video.duration) return;
-      document.getElementById('timeline').value = (video.currentTime / video.duration) * 100;
-      const m = Math.floor(video.currentTime / 60);
-      const s = Math.floor(video.currentTime % 60);
-      const ms = Math.floor((video.currentTime % 1) * 100);
-      document.getElementById('timeDisplay').innerText = 
-        `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(ms).padStart(2,'0')}`;
+    function stepFrames(count) {
+      if (hasLoadedVideo) {
+        video.pause();
+        const dur = video.duration || 10;
+        video.currentTime = Math.max(0, Math.min(dur, video.currentTime + count * STEP_DT));
+      } else {
+        demoPlaying = false;
+        demoTime = (demoTime + count * 0.02 + 1) % 1;
+      }
+      updatePlayIcon();
+      updateScrubberUI();
+      renderFrame();
     }
 
-    /* Coordinate Calculation & Drawing */
-    function getCanvasCoords(e) {
+    function setPlaybackRate(rate, btnEl) {
+      demoSpeed = rate;
+      if (hasLoadedVideo) video.playbackRate = rate;
+      document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+    }
+
+    function handleScrub(val) {
+      const norm = Number(val) / 1000;
+      if (hasLoadedVideo && video.duration) {
+        video.pause();
+        video.currentTime = norm * video.duration;
+      } else {
+        demoPlaying = false;
+        demoTime = norm;
+      }
+      updatePlayIcon();
+      updateScrubberUI();
+      renderFrame();
+    }
+
+    function updateScrubberUI() {
+      let cur = 0;
+      let dur = 2.5;
+      if (hasLoadedVideo && video.duration) {
+        cur = video.currentTime;
+        dur = video.duration;
+      } else {
+        cur = demoTime * dur;
+      }
+      const slider = document.getElementById('timelineSlider');
+      slider.value = Math.round((cur / (dur || 1)) * 1000);
+
+      const mins = Math.floor(cur / 60);
+      const secs = Math.floor(cur % 60);
+      const hundredths = Math.floor((cur % 1) * 100);
+      document.getElementById('timeText').textContent =
+        `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(hundredths).padStart(2, '0')}`;
+      document.getElementById('frameText').textContent = `Frame ${Math.round(cur / STEP_DT)}`;
+    }
+
+    video.addEventListener('seeked', renderFrame);
+    video.addEventListener('timeupdate', updateScrubberUI);
+    video.addEventListener('ended', updatePlayIcon);
+
+    // Math helpers
+    function computeAngleDegrees(p1, vertex, p3, reflex = false) {
+      const a1 = Math.atan2(p1.y - vertex.y, p1.x - vertex.x);
+      const a2 = Math.atan2(p3.y - vertex.y, p3.x - vertex.x);
+      let diff = Math.abs(a1 - a2) * (180 / Math.PI);
+      if (diff > 180) diff = 360 - diff;
+      return reflex ? 360 - diff : diff;
+    }
+
+    function computeLineDegrees(p1, p2) {
+      const dx = p2.x - p1.x;
+      const dy = p1.y - p2.y; // Invert Y so up is positive
+      let deg = Math.atan2(dy, dx) * (180 / Math.PI);
+      return Math.abs(deg);
+    }
+
+    function getSelectedAnnotation() {
+      return annotations.find(a => a.id === selectedId) || null;
+    }
+
+    // Pointer / Touch Interaction on Canvas
+    function getStageCoords(e) {
       const rect = canvas.getBoundingClientRect();
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      return { x: clientX - rect.left, y: clientY - rect.top };
+      return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    }
+
+    function findHitHandle(pt, box) {
+      const hitRadius = 24; // Large iPad touch target
+      for (let i = annotations.length - 1; i >= 0; i--) {
+        const item = annotations[i];
+        if (item.type === 'angle') {
+          const keys = ['p1', 'vertex', 'p3'];
+          for (const k of keys) {
+            const hp = normToPixel(item[k], box);
+            if (Math.hypot(pt.x - hp.x, pt.y - hp.y) <= hitRadius) {
+              return { item, handleKey: k };
+            }
+          }
+          // Check badge hit
+          const vp = normToPixel(item.vertex, box);
+          if (Math.hypot(pt.x - (vp.x + 42), pt.y - (vp.y - 18)) <= 36) {
+            return { item, handleKey: 'vertex' };
+          }
+        } else if (item.type === 'line' || item.type === 'plumb' || item.type === 'arrow' || item.type === 'circle') {
+          for (const k of ['p1', 'p2']) {
+            const hp = normToPixel(item[k], box);
+            if (Math.hypot(pt.x - hp.x, pt.y - hp.y) <= hitRadius) {
+              return { item, handleKey: k };
+            }
+          }
+        }
+      }
+      return null;
     }
 
     canvas.addEventListener('pointerdown', (e) => {
-      const pt = getCanvasCoords(e);
-      loupe.style.display = 'block';
-      updateLoupe(pt);
+      e.preventDefault();
+      canvas.setPointerCapture(e.pointerId);
+      const pt = getStageCoords(e);
+      cursorPos = pt;
+      const box = getVideoBox();
+      const normPt = pixelToNorm(pt.x, pt.y, box);
 
-      if (currentTool === 'angle') {
-        tempPoints.push(pt);
-        if (tempPoints.length === 3) {
-          const newAngle = {
-            type: 'angle',
-            p1: tempPoints[0],
-            vertex: tempPoints[1], // Point 2 is the joint vertex
-            p3: tempPoints[2],
-            label: 'Joint',
-            isReflex: false
+      showLoupeAt(pt);
+
+      // 1. Check if grabbing an existing handle first (unless mid-angle creation)
+      if (pendingAnglePts.length === 0) {
+        const hit = findHitHandle(pt, box);
+        if (hit) {
+          selectedId = hit.item.id;
+          dragState = {
+            type: 'handle',
+            item: hit.item,
+            handleKey: hit.handleKey
           };
-          annotations.push(newAngle);
-          selectedAnnotation = newAngle;
-          tempPoints = [];
-          updateSidebarInfo();
-        }
-      } else if (currentTool === 'line' || currentTool === 'arrow' || currentTool === 'plumb') {
-        tempPoints.push(pt);
-        if (tempPoints.length === 2) {
-          if (currentTool === 'plumb') {
-            const dx = Math.abs(tempPoints[1].x - tempPoints[0].x);
-            const dy = Math.abs(tempPoints[1].y - tempPoints[0].y);
-            if (dy > dx) tempPoints[1].x = tempPoints[0].x;
-            else tempPoints[1].y = tempPoints[0].y;
-          }
-          annotations.push({
-            type: currentTool,
-            p1: tempPoints[0],
-            p2: tempPoints[1],
-            dashed: lineDashed
-          });
-          tempPoints = [];
+          syncInspectorUI();
+          renderFrame();
+          return;
         }
       }
-      render();
+
+      // 2. Tool-specific creation
+      if (activeTool === 'angle') {
+        pendingAnglePts.push(normPt);
+        if (pendingAnglePts.length === 3) {
+          const newAngle = {
+            id: 'ang_' + Date.now(),
+            type: 'angle',
+            label: `Angle ${annotations.filter(a => a.type === 'angle').length + 1}`,
+            color: activeColor,
+            dashed: isDashed,
+            reflex: false,
+            p1: pendingAnglePts[0],
+            vertex: pendingAnglePts[1], // 2nd point clicked is the vertex!
+            p3: pendingAnglePts[2]
+          };
+          annotations.push(newAngle);
+          selectedId = newAngle.id;
+          pendingAnglePts = [];
+          // Allow immediate fine-tuning of the 3rd point while holding pointer down
+          dragState = { type: 'handle', item: newAngle, handleKey: 'p3' };
+          syncInspectorUI();
+        }
+        updatePromptBanner();
+        renderFrame();
+      } else if (activeTool === 'line' || activeTool === 'plumb' || activeTool === 'arrow' || activeTool === 'circle') {
+        const labelMap = { line: 'Line', plumb: 'Plumb', arrow: 'Vector', circle: 'Marker' };
+        const newItem = {
+          id: 'item_' + Date.now(),
+          type: activeTool,
+          label: labelMap[activeTool],
+          color: activeColor,
+          dashed: isDashed,
+          p1: { ...normPt },
+          p2: {
+            nx: Math.min(1, normPt.nx + 0.04),
+            ny: Math.min(1, normPt.ny + 0.04)
+          }
+        };
+        annotations.push(newItem);
+        selectedId = newItem.id;
+        dragState = { type: 'create', item: newItem, handleKey: 'p2' };
+        syncInspectorUI();
+        renderFrame();
+      } else if (activeTool === 'pen') {
+        const newPen = {
+          id: 'pen_' + Date.now(),
+          type: 'pen',
+          label: 'Trace',
+          color: activeColor,
+          dashed: isDashed,
+          points: [normPt]
+        };
+        annotations.push(newPen);
+        selectedId = newPen.id;
+        dragState = { type: 'pen', item: newPen };
+        syncInspectorUI();
+        renderFrame();
+      }
     });
 
     canvas.addEventListener('pointermove', (e) => {
-      const pt = getCanvasCoords(e);
-      if (loupe.style.display === 'block') {
-        updateLoupe(pt);
+      const pt = getStageCoords(e);
+      cursorPos = pt;
+      const box = getVideoBox();
+      const normPt = pixelToNorm(pt.x, pt.y, box);
+
+      if (dragState) {
+        showLoupeAt(pt);
+        const item = dragState.item;
+        if (dragState.type === 'handle' || dragState.type === 'create') {
+          if (item.type === 'plumb') {
+            const p1Px = normToPixel(item.p1, box);
+            const dx = Math.abs(pt.x - p1Px.x);
+            const dy = Math.abs(pt.y - p1Px.y);
+            if (dy >= dx) {
+              item.p2 = { nx: item.p1.nx, ny: normPt.ny };
+            } else {
+              item.p2 = { nx: normPt.nx, ny: item.p1.ny };
+            }
+          } else {
+            item[dragState.handleKey] = normPt;
+          }
+        } else if (dragState.type === 'pen') {
+          item.points.push(normPt);
+        }
+        syncInspectorUI();
+        renderFrame();
+      } else if (pendingAnglePts.length > 0) {
+        showLoupeAt(pt);
+        renderFrame();
       }
     });
 
-    canvas.addEventListener('pointerup', () => {
-      loupe.style.display = 'none';
-      render();
-    });
+    function endPointerInteraction() {
+      dragState = null;
+      if (pendingAnglePts.length === 0) {
+        loupeContainer.style.display = 'none';
+      }
+      renderFrame();
+    }
 
-    function updateLoupe(pt) {
-      loupeCtx.clearRect(0, 0, 110, 110);
+    canvas.addEventListener('pointerup', endPointerInteraction);
+    canvas.addEventListener('pointercancel', endPointerInteraction);
+
+    // Always-On Precision Loupe
+    function showLoupeAt(pt) {
+      loupeContainer.style.display = 'block';
+      // Flip loupe to right corner if finger/pencil is in upper-left quadrant
+      if (pt.x < 220 && pt.y < 220) {
+        loupeContainer.classList.add('right-side');
+      } else {
+        loupeContainer.classList.remove('right-side');
+      }
+    }
+
+    function renderLoupe() {
+      if (loupeContainer.style.display === 'none' || !cursorPos) return;
+      const dpr = window.devicePixelRatio || 1;
+      const zoom = 2.4;
+      const size = 124;
+      const srcRadius = (size / zoom) * dpr;
+
+      loupeCtx.clearRect(0, 0, size, size);
+      loupeCtx.save();
+      loupeCtx.fillStyle = '#000';
+      loupeCtx.fillRect(0, 0, size, size);
+
+      // Copy zoomed region directly from mainCanvas (which already has video + vector overlay)
       loupeCtx.drawImage(
         canvas,
-        pt.x - 22, pt.y - 22, 44, 44,
-        0, 0, 110, 110
+        cursorPos.x * dpr - srcRadius / 2,
+        cursorPos.y * dpr - srcRadius / 2,
+        srcRadius,
+        srcRadius,
+        0,
+        0,
+        size,
+        size
       );
-      // Reticle
-      loupeCtx.strokeStyle = '#0A84FF';
-      loupeCtx.lineWidth = 1;
+
+      // Precision crosshair reticle
+      loupeCtx.strokeStyle = 'rgba(10, 132, 255, 0.95)';
+      loupeCtx.lineWidth = 1.5;
       loupeCtx.beginPath();
-      loupeCtx.moveTo(55, 0); loupeCtx.lineTo(55, 110);
-      loupeCtx.moveTo(0, 55); loupeCtx.lineTo(110, 55);
+      loupeCtx.moveTo(size / 2, 0);
+      loupeCtx.lineTo(size / 2, size);
+      loupeCtx.moveTo(0, size / 2);
+      loupeCtx.lineTo(size, size / 2);
       loupeCtx.stroke();
+
+      loupeCtx.beginPath();
+      loupeCtx.arc(size / 2, size / 2, 5, 0, Math.PI * 2);
+      loupeCtx.strokeStyle = '#FFFFFF';
+      loupeCtx.stroke();
+      loupeCtx.restore();
     }
 
-    function calcAngleDeg(p1, vertex, p3) {
-      const a = Math.atan2(p1.y - vertex.y, p1.x - vertex.x);
-      const b = Math.atan2(p3.y - vertex.y, p3.x - vertex.x);
-      let deg = Math.abs((a - b) * (180 / Math.PI));
-      if (deg > 180) deg = 360 - deg;
-      return deg;
+    // Synthetic Reference Figure (when no video file is loaded yet)
+    function drawDemoFigure(box) {
+      ctx.save();
+      // Subtle studio background inside video frame
+      ctx.fillStyle = '#0D0D10';
+      ctx.fillRect(box.x, box.y, box.w, box.h);
+
+      // Subtle reference grid
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.lineWidth = 1;
+      const step = box.w / 16;
+      for (let x = box.x; x <= box.x + box.w; x += step) {
+        ctx.beginPath(); ctx.moveTo(x, box.y); ctx.lineTo(x, box.y + box.h); ctx.stroke();
+      }
+      for (let y = box.y; y <= box.y + box.h; y += step) {
+        ctx.beginPath(); ctx.moveTo(box.x, y); ctx.lineTo(box.x + box.w, y); ctx.stroke();
+      }
+
+      // Smooth squat/jump kinematic cycle
+      const phase = Math.sin(demoTime * Math.PI * 2);
+      const crouch = Math.max(0, phase) * 0.14;
+      const flight = Math.max(0, -phase) * 0.12;
+
+      const ankle = { x: box.x + box.w * 0.48, y: box.y + box.h * (0.82 - flight) };
+      const knee = { x: box.x + box.w * (0.48 + crouch * 0.65), y: box.y + box.h * (0.64 - flight + crouch * 0.25) };
+      const hip = { x: box.x + box.w * (0.44 - crouch * 0.35), y: box.y + box.h * (0.47 - flight + crouch * 0.7) };
+      const shoulder = { x: box.x + box.w * (0.49 + crouch * 0.2), y: box.y + box.h * (0.26 - flight + crouch * 0.85) };
+      const ear = { x: shoulder.x + box.w * 0.015, y: shoulder.y - box.h * 0.09 };
+      const elbow = { x: shoulder.x - box.w * (0.06 + crouch * 0.2), y: shoulder.y + box.h * 0.12 };
+      const wrist = { x: elbow.x + box.w * 0.07, y: elbow.y + box.h * 0.08 };
+      const toe = { x: ankle.x + box.w * 0.07, y: ankle.y + box.h * 0.02 };
+
+      // Segments
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+      ctx.lineWidth = 8;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      ctx.beginPath();
+      ctx.moveTo(toe.x, toe.y);
+      ctx.lineTo(ankle.x, ankle.y);
+      ctx.lineTo(knee.x, knee.y);
+      ctx.lineTo(hip.x, hip.y);
+      ctx.lineTo(shoulder.x, shoulder.y);
+      ctx.lineTo(elbow.x, elbow.y);
+      ctx.lineTo(wrist.x, wrist.y);
+      ctx.stroke();
+
+      // Head
+      ctx.beginPath();
+      ctx.arc(ear.x, ear.y, box.h * 0.045, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Anatomical markers
+      [toe, ankle, knee, hip, shoulder, elbow, wrist].forEach(pt => {
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fill();
+        ctx.strokeStyle = '#0A84FF';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+
+      ctx.restore();
     }
 
-    function render() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Main Canvas Render
+    function renderFrame() {
+      const sw = stageContainer.clientWidth;
+      const sh = stageContainer.clientHeight;
+      ctx.clearRect(0, 0, sw, sh);
 
-      // Render finalized annotations
+      const box = getVideoBox();
+
+      // 1. Draw Video or Clean Reference Figure
+      if (hasLoadedVideo && video.readyState >= 2) {
+        ctx.drawImage(video, box.x, box.y, box.w, box.h);
+      } else {
+        drawDemoFigure(box);
+      }
+
+      // 2. Draw all completed annotations
       annotations.forEach(item => {
+        const isSel = item.id === selectedId;
         ctx.save();
-        ctx.strokeStyle = '#30D158';
-        ctx.fillStyle = '#30D158';
-        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = item.color;
+        ctx.fillStyle = item.color;
+        ctx.lineWidth = isSel ? 3.2 : 2.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
         if (item.dashed) ctx.setLineDash([8, 6]);
 
         if (item.type === 'angle') {
+          const p1 = normToPixel(item.p1, box);
+          const v = normToPixel(item.vertex, box);
+          const p3 = normToPixel(item.p3, box);
+
+          // Limbs
           ctx.beginPath();
-          ctx.moveTo(item.p1.x, item.p1.y);
-          ctx.lineTo(item.vertex.x, item.vertex.y);
-          ctx.lineTo(item.p3.x, item.p3.y);
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(v.x, v.y);
+          ctx.lineTo(p3.x, p3.y);
           ctx.stroke();
 
-          // Vertex marker
+          // Interior / Reflex Arc
+          ctx.setLineDash([]);
+          const a1 = Math.atan2(p1.y - v.y, p1.x - v.x);
+          const a2 = Math.atan2(p3.y - v.y, p3.x - v.x);
+          let diff = a2 - a1;
+          while (diff <= -Math.PI) diff += Math.PI * 2;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          const ccw = item.reflex ? diff > 0 : diff < 0;
+
           ctx.beginPath();
-          ctx.arc(item.vertex.x, item.vertex.y, 6, 0, Math.PI * 2);
-          ctx.fillStyle = '#0A84FF';
+          ctx.moveTo(v.x, v.y);
+          ctx.arc(v.x, v.y, 28, a1, a2, ccw);
+          ctx.closePath();
+          ctx.fillStyle = item.color + '33';
           ctx.fill();
+
+          ctx.beginPath();
+          ctx.arc(v.x, v.y, 28, a1, a2, ccw);
+          ctx.lineWidth = 2;
           ctx.stroke();
 
-          // Degree calculation
-          let val = calcAngleDeg(item.p1, item.vertex, item.p3);
-          if (item.isReflex) val = 360 - val;
+          // Endpoints & Double-ring Vertex
+          drawHandle(p1.x, p1.y, item.color, false, isSel);
+          drawHandle(p3.x, p3.y, item.color, false, isSel);
+          drawHandle(v.x, v.y, item.color, true, isSel);
 
-          // Pill tag
-          const txt = `${item.label || 'Joint'} · ${val.toFixed(1)}°`;
-          ctx.font = '500 13px -apple-system, sans-serif';
-          const tw = ctx.measureText(txt).width;
-          ctx.fillStyle = 'rgba(0,0,0,0.75)';
-          ctx.roundRect(item.vertex.x + 12, item.vertex.y - 12, tw + 16, 24, 6);
-          ctx.fill();
-          ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-          ctx.stroke();
-          ctx.fillStyle = '#FFFFFF';
-          ctx.fillText(txt, item.vertex.x + 20, item.vertex.y + 4);
+          // Pill Readout Badge
+          const deg = computeAngleDegrees(p1, v, p3, item.reflex);
+          const labelTxt = `${item.label || 'Joint'} · ${deg.toFixed(1)}°`;
+          drawCanvasPill(v.x + 16, v.y - 28, labelTxt, item.color, isSel);
 
         } else if (item.type === 'line' || item.type === 'plumb') {
+          const p1 = normToPixel(item.p1, box);
+          const p2 = normToPixel(item.p2, box);
           ctx.beginPath();
-          ctx.moveTo(item.p1.x, item.p1.y);
-          ctx.lineTo(item.p2.x, item.p2.y);
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
           ctx.stroke();
+
+          ctx.setLineDash([]);
+          drawHandle(p1.x, p1.y, item.color, false, isSel);
+          drawHandle(p2.x, p2.y, item.color, false, isSel);
+
+          const deg = computeLineDegrees(p1, p2);
+          const midX = (p1.x + p2.x) / 2 + 10;
+          const midY = (p1.y + p2.y) / 2 - 14;
+          drawCanvasPill(midX, midY, `${item.label} · ${deg.toFixed(1)}°`, item.color, isSel);
+
         } else if (item.type === 'arrow') {
+          const p1 = normToPixel(item.p1, box);
+          const p2 = normToPixel(item.p2, box);
           ctx.beginPath();
-          ctx.moveTo(item.p1.x, item.p1.y);
-          ctx.lineTo(item.p2.x, item.p2.y);
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
           ctx.stroke();
-          // Arrowhead
-          const angle = Math.atan2(item.p2.y - item.p1.y, item.p2.x - item.p1.x);
-          ctx.fillStyle = '#30D158';
+
+          ctx.setLineDash([]);
+          const ang = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+          const headLen = 14;
           ctx.beginPath();
-          ctx.moveTo(item.p2.x, item.p2.y);
-          ctx.lineTo(item.p2.x - 12 * Math.cos(angle - Math.PI / 6), item.p2.y - 12 * Math.sin(angle - Math.PI / 6));
-          ctx.lineTo(item.p2.x - 12 * Math.cos(angle + Math.PI / 6), item.p2.y - 12 * Math.sin(angle + Math.PI / 6));
+          ctx.moveTo(p2.x, p2.y);
+          ctx.lineTo(p2.x - headLen * Math.cos(ang - Math.PI / 6), p2.y - headLen * Math.sin(ang - Math.PI / 6));
+          ctx.lineTo(p2.x - headLen * Math.cos(ang + Math.PI / 6), p2.y - headLen * Math.sin(ang + Math.PI / 6));
           ctx.closePath();
           ctx.fill();
+
+          drawHandle(p1.x, p1.y, item.color, false, isSel);
+
+        } else if (item.type === 'circle') {
+          const p1 = normToPixel(item.p1, box);
+          const p2 = normToPixel(item.p2, box);
+          const r = Math.max(12, Math.hypot(p2.x - p1.x, p2.y - p1.y));
+          ctx.beginPath();
+          ctx.arc(p1.x, p1.y, r, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          drawHandle(p1.x, p1.y, item.color, true, isSel);
+          drawHandle(p2.x, p2.y, item.color, false, isSel);
+
+        } else if (item.type === 'pen' && item.points.length > 1) {
+          ctx.beginPath();
+          const first = normToPixel(item.points[0], box);
+          ctx.moveTo(first.x, first.y);
+          for (let i = 1; i < item.points.length; i++) {
+            const pt = normToPixel(item.points[i], box);
+            ctx.lineTo(pt.x, pt.y);
+          }
+          ctx.stroke();
         }
         ctx.restore();
       });
 
-      // Render points in progress
-      if (tempPoints.length > 0) {
-        ctx.fillStyle = '#0A84FF';
-        tempPoints.forEach(p => {
+      // 3. Draw in-progress 3-point angle preview
+      if (pendingAnglePts.length > 0) {
+        ctx.save();
+        ctx.strokeStyle = activeColor;
+        ctx.lineWidth = 2.2;
+        ctx.setLineDash([5, 5]);
+        const p1 = normToPixel(pendingAnglePts[0], box);
+
+        if (pendingAnglePts.length === 1 && cursorPos) {
           ctx.beginPath();
-          ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
-          ctx.fill();
-        });
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(cursorPos.x, cursorPos.y);
+          ctx.stroke();
+          drawHandle(p1.x, p1.y, activeColor, false, true);
+        } else if (pendingAnglePts.length === 2) {
+          const v = normToPixel(pendingAnglePts[1], box);
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(v.x, v.y);
+          if (cursorPos) ctx.lineTo(cursorPos.x, cursorPos.y);
+          ctx.stroke();
+          drawHandle(p1.x, p1.y, activeColor, false, true);
+          drawHandle(v.x, v.y, activeColor, true, true);
+        }
+        ctx.restore();
       }
+
+      // 4. Update Loupe
+      renderLoupe();
     }
 
-    function clearCurrentMarkup() {
-      annotations = [];
-      tempPoints = [];
-      selectedAnnotation = null;
-      updateSidebarInfo();
-      render();
+    function drawHandle(x, y, color, isVertex, isSelected) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x, y, isVertex ? 7.5 : 6, 0, Math.PI * 2);
+      ctx.fillStyle = isVertex ? '#FFFFFF' : color;
+      ctx.fill();
+      ctx.lineWidth = 2.2;
+      ctx.strokeStyle = isVertex ? color : '#FFFFFF';
+      ctx.stroke();
+
+      if (isSelected) {
+        ctx.beginPath();
+        ctx.arc(x, y, 12, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+      }
+      ctx.restore();
     }
 
-    function updateSidebarInfo() {
-      if (selectedAnnotation && selectedAnnotation.type === 'angle') {
-        let val = calcAngleDeg(selectedAnnotation.p1, selectedAnnotation.vertex, selectedAnnotation.p3);
-        if (selectedAnnotation.isReflex) val = 360 - val;
-        document.getElementById('statAngle').innerText = `${val.toFixed(1)}°`;
-        document.getElementById('statType').innerText = selectedAnnotation.isReflex ? 'Reflex Angle' : 'Interior Angle';
-        document.getElementById('customLabelInput').value = selectedAnnotation.label;
+    function drawCanvasPill(x, y, text, color, isSelected) {
+      ctx.save();
+      ctx.font = '600 12.5px -apple-system, BlinkMacSystemFont, sans-serif';
+      const tw = ctx.measureText(text).width;
+      const pw = tw + 18;
+      const ph = 26;
+
+      fillRoundRect(ctx, x, y, pw, ph, 8);
+      ctx.fillStyle = 'rgba(20, 20, 22, 0.88)';
+      ctx.fill();
+      ctx.lineWidth = isSelected ? 1.8 : 1;
+      ctx.strokeStyle = isSelected ? color : 'rgba(255, 255, 255, 0.22)';
+      ctx.stroke();
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, x + 9, y + ph / 2);
+      ctx.restore();
+    }
+
+    // Inspector Sidebar Logic
+    function syncInspectorUI() {
+      const sel = getSelectedAnnotation();
+      const valEl = document.getElementById('inspectorValue');
+      const badgeEl = document.getElementById('inspectorBadge');
+      const inputEl = document.getElementById('labelInput');
+      const box = getVideoBox();
+
+      if (sel) {
+        valEl.style.color = sel.color;
+        if (document.activeElement !== inputEl) {
+          inputEl.value = sel.label || '';
+        }
+        if (sel.type === 'angle') {
+          const deg = computeAngleDegrees(
+            normToPixel(sel.p1, box),
+            normToPixel(sel.vertex, box),
+            normToPixel(sel.p3, box),
+            sel.reflex
+          );
+          valEl.textContent = `${deg.toFixed(1)}°`;
+          badgeEl.textContent = sel.reflex ? 'Reflex (>180°)' : 'Interior';
+        } else if (sel.type === 'line' || sel.type === 'plumb') {
+          const deg = computeLineDegrees(normToPixel(sel.p1, box), normToPixel(sel.p2, box));
+          valEl.textContent = `${deg.toFixed(1)}°`;
+          badgeEl.textContent = sel.type === 'plumb' ? 'Plumb Reference' : 'Segment Tilt';
+        } else {
+          valEl.textContent = sel.label || 'Markup';
+          badgeEl.textContent = sel.type.toUpperCase();
+        }
       } else {
-        document.getElementById('statAngle').innerText = '--°';
-        document.getElementById('statType').innerText = 'Select or draw an angle';
-        document.getElementById('customLabelInput').value = '';
+        valEl.textContent = '--°';
+        valEl.style.color = 'var(--ios-green)';
+        badgeEl.textContent = 'No Selection';
+        inputEl.value = '';
+      }
+
+      // Highlight matching quick-name chip
+      document.querySelectorAll('.preset-chip').forEach(chip => {
+        chip.classList.toggle('active', sel && sel.label === chip.textContent);
+      });
+
+      renderMeasurementsList(box);
+    }
+
+    function renderMeasurementsList(box) {
+      const listEl = document.getElementById('measurementsList');
+      if (annotations.length === 0) {
+        listEl.innerHTML = '<div class="empty-state">Tap 3 points on the video to measure a joint angle, or drag to draw a reference line.</div>';
+        return;
+      }
+
+      listEl.innerHTML = annotations.map(item => {
+        let readout = item.type.toUpperCase();
+        if (item.type === 'angle') {
+          const deg = computeAngleDegrees(
+            normToPixel(item.p1, box),
+            normToPixel(item.vertex, box),
+            normToPixel(item.p3, box),
+            item.reflex
+          );
+          readout = `${deg.toFixed(1)}°`;
+        } else if (item.type === 'line' || item.type === 'plumb') {
+          const deg = computeLineDegrees(normToPixel(item.p1, box), normToPixel(item.p2, box));
+          readout = `${deg.toFixed(1)}°`;
+        }
+
+        const isSel = item.id === selectedId ? 'selected' : '';
+        return `
+          <div class="measure-item ${isSel}" onclick="selectAnnotationById('${item.id}')">
+            <div class="measure-left">
+              <span class="measure-dot" style="background:${item.color}"></span>
+              <span class="measure-name">${item.label || 'Unnamed'}</span>
+            </div>
+            <div class="measure-right">
+              <span class="measure-val">${readout}</span>
+              <button class="trash-btn" onclick="event.stopPropagation(); removeAnnotationById('${item.id}')" title="Delete">✕</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectAnnotationById(id) {
+      selectedId = id;
+      syncInspectorUI();
+      renderFrame();
+    }
+
+    function removeAnnotationById(id) {
+      annotations = annotations.filter(a => a.id !== id);
+      if (selectedId === id) {
+        selectedId = annotations.length ? annotations[annotations.length - 1].id : null;
+      }
+      syncInspectorUI();
+      renderFrame();
+    }
+
+    function setQuickName(name) {
+      const sel = getSelectedAnnotation();
+      if (!sel) return;
+      sel.label = name;
+      syncInspectorUI();
+      renderFrame();
+    }
+
+    function onCustomLabelInput(val) {
+      document.getElementById('labelInput').value = val;
+      const sel = getSelectedAnnotation();
+      if (!sel) return;
+      sel.label = val;
+      syncInspectorUI();
+      renderFrame();
+    }
+
+    function flipSelectedAngle() {
+      const sel = getSelectedAnnotation();
+      if (sel && sel.type === 'angle') {
+        sel.reflex = !sel.reflex;
+        syncInspectorUI();
+        renderFrame();
       }
     }
 
-    function applyPresetName(name) {
-      if (selectedAnnotation) {
-        selectedAnnotation.label = name;
-        updateSidebarInfo();
-        render();
-      }
+    function deleteSelectedAnnotation() {
+      if (!selectedId) return;
+      removeAnnotationById(selectedId);
     }
 
-    function updateCurrentLabel(txt) {
-      if (selectedAnnotation) {
-        selectedAnnotation.label = txt;
-        render();
+    function undoLast() {
+      if (pendingAnglePts.length > 0) {
+        pendingAnglePts.pop();
+        updatePromptBanner();
+        renderFrame();
+        return;
       }
+      annotations.pop();
+      selectedId = annotations.length ? annotations[annotations.length - 1].id : null;
+      syncInspectorUI();
+      renderFrame();
     }
 
-    function flipActiveAngle() {
-      if (selectedAnnotation && selectedAnnotation.type === 'angle') {
-        selectedAnnotation.isReflex = !selectedAnnotation.isReflex;
-        updateSidebarInfo();
-        render();
-      }
+    function clearAllAnnotations() {
+      annotations = [];
+      pendingAnglePts = [];
+      selectedId = null;
+      syncInspectorUI();
+      updatePromptBanner();
+      renderFrame();
     }
 
-    // Initialize
-    resizeCanvas();
+    // Animation loop for smooth playback & demo figure
+    function tick(now) {
+      const dt = (now - lastRafTime) / 1000;
+      lastRafTime = now;
+
+      if (!hasLoadedVideo && demoPlaying) {
+        demoTime = (demoTime + dt * 0.45 * demoSpeed) % 1;
+        updateScrubberUI();
+        renderFrame();
+      } else if (hasLoadedVideo && !video.paused) {
+        renderFrame();
+      }
+      requestAnimationFrame(tick);
+    }
+
+    // Boot
+    resizeStage();
+    syncInspectorUI();
+    updateScrubberUI();
+    requestAnimationFrame(tick);
   </script>
 </body>
 </html>
